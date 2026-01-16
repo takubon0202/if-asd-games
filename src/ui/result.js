@@ -1,6 +1,7 @@
 /**
  * Result画面 - 結果表示
  * ASD&LD向け「目の動き」トレーニングWebゲーム
+ * ASD/LD向けデザインガイドラインに基づくリデザイン版
  */
 
 import { stateMachine, GameState } from '../engine/state.js';
@@ -28,13 +29,9 @@ export class ResultScreen {
     this.container.setAttribute('aria-label', 'けっか');
     this.container.setAttribute('aria-modal', 'true');
 
-    // メインコンテンツ
-    const main = this._createMain();
-    this.container.appendChild(main);
-
-    // フッター（ボタン）
-    const footer = this._createFooter();
-    this.container.appendChild(footer);
+    // 結果カード
+    const card = this._createCard();
+    this.container.appendChild(card);
 
     // スタイルを適用
     this._applyStyles();
@@ -43,196 +40,187 @@ export class ResultScreen {
   }
 
   /**
-   * メインコンテンツを作成
+   * 結果カードを作成
    */
-  _createMain() {
-    const main = document.createElement('main');
-    main.className = 'result-main';
+  _createCard() {
+    const card = document.createElement('div');
+    card.className = 'result-card';
 
-    // タイトル
+    // ヘッダー
+    const header = this._createHeader();
+    card.appendChild(header);
+
+    // スコアバッジ
+    const scoreBadge = this._createScoreBadge();
+    card.appendChild(scoreBadge);
+
+    // 励ましメッセージ
+    const encouragement = document.createElement('p');
+    encouragement.className = 'result-encouragement';
+    encouragement.id = 'result-encouragement';
+    card.appendChild(encouragement);
+
+    // 統計情報
+    const stats = this._createStats();
+    card.appendChild(stats);
+
+    // ボタン
+    const buttons = this._createButtons();
+    card.appendChild(buttons);
+
+    return card;
+  }
+
+  /**
+   * ヘッダーを作成
+   */
+  _createHeader() {
+    const header = document.createElement('div');
+    header.className = 'result-header';
+
     const title = document.createElement('h1');
     title.className = 'result-title';
-    title.textContent = 'おわり';
-    main.appendChild(title);
+    title.textContent = 'おわり! ';
+    header.appendChild(title);
 
-    // 結果コンテナ
-    const resultContainer = document.createElement('div');
-    resultContainer.className = 'result-container';
-    resultContainer.id = 'result-container';
-    main.appendChild(resultContainer);
+    const subtitle = document.createElement('p');
+    subtitle.className = 'result-subtitle';
+    subtitle.textContent = 'よくがんばったね';
+    header.appendChild(subtitle);
 
-    // メッセージ
-    const message = document.createElement('p');
-    message.className = 'result-message';
-    message.id = 'result-message';
-    message.textContent = 'おつかれさまでした';
-    main.appendChild(message);
+    return header;
+  }
 
-    return main;
+  /**
+   * スコアバッジを作成
+   */
+  _createScoreBadge() {
+    const badge = document.createElement('div');
+    badge.className = 'score-badge';
+    badge.id = 'score-badge';
+
+    const scoreNumber = document.createElement('span');
+    scoreNumber.className = 'score-number';
+    scoreNumber.id = 'score-number';
+    scoreNumber.textContent = '0';
+    badge.appendChild(scoreNumber);
+
+    const scoreLabel = document.createElement('span');
+    scoreLabel.className = 'score-label';
+    scoreLabel.textContent = 'てん';
+    badge.appendChild(scoreLabel);
+
+    return badge;
+  }
+
+  /**
+   * 統計情報を作成
+   */
+  _createStats() {
+    const stats = document.createElement('div');
+    stats.className = 'result-stats';
+    stats.id = 'result-stats';
+
+    // 時間
+    const timeRow = document.createElement('div');
+    timeRow.className = 'stat-row';
+    timeRow.id = 'stat-time';
+    stats.appendChild(timeRow);
+
+    // 正解数
+    const correctRow = document.createElement('div');
+    correctRow.className = 'stat-row';
+    correctRow.id = 'stat-correct';
+    stats.appendChild(correctRow);
+
+    return stats;
+  }
+
+  /**
+   * ボタンを作成
+   */
+  _createButtons() {
+    const buttons = document.createElement('div');
+    buttons.className = 'result-buttons';
+
+    // リトライボタン
+    const retryBtn = document.createElement('button');
+    retryBtn.className = 'result-btn retry-btn';
+    retryBtn.setAttribute('tabindex', '0');
+    retryBtn.setAttribute('aria-label', 'もういちど やる');
+    retryBtn.textContent = 'もういちど ';
+    retryBtn.addEventListener('click', () => {
+      audio.play('click');
+      this._retry();
+    });
+    buttons.appendChild(retryBtn);
+
+    // ホームボタン
+    const homeBtn = document.createElement('button');
+    homeBtn.className = 'result-btn home-btn';
+    homeBtn.setAttribute('tabindex', '0');
+    homeBtn.setAttribute('aria-label', 'ホームに もどる');
+    homeBtn.textContent = 'ホームへ ';
+    homeBtn.addEventListener('click', () => {
+      audio.play('click');
+      this._goHome();
+    });
+    buttons.appendChild(homeBtn);
+
+    return buttons;
   }
 
   /**
    * 結果コンテンツを更新
    */
   _updateResultContent() {
-    const container = this.container.querySelector('#result-container');
-    if (!container) return;
-
-    container.innerHTML = '';
-
     if (!this.resultData) return;
 
-    // 結果項目を作成
-    const items = this._buildResultItems();
-    items.forEach(item => {
-      const row = this._createResultRow(item.label, item.value, item.highlight);
-      container.appendChild(row);
-    });
-
-    // メッセージを更新
-    const message = this.container.querySelector('#result-message');
-    if (message) {
-      message.textContent = this._getEncouragementMessage();
-    }
-  }
-
-  /**
-   * 結果項目を構築
-   */
-  _buildResultItems() {
-    const items = [];
-    const data = this.resultData;
-
-    // 時間
-    if (data.time !== undefined) {
-      const minutes = Math.floor(data.time / 60);
-      const seconds = Math.floor(data.time % 60);
-      const timeStr = minutes > 0
-        ? `${minutes}ふん ${seconds}びょう`
-        : `${seconds}びょう`;
-      items.push({ label: 'じかん', value: timeStr });
+    // スコアを更新
+    const scoreNumber = this.container.querySelector('#score-number');
+    if (scoreNumber && this.resultData.score !== undefined) {
+      scoreNumber.textContent = this.resultData.score;
     }
 
-    // スコア
-    if (data.score !== undefined) {
-      items.push({
-        label: 'スコア',
-        value: `${data.score}`,
-        highlight: true
-      });
+    // 時間を更新
+    const timeRow = this.container.querySelector('#stat-time');
+    if (timeRow && this.resultData.time !== undefined) {
+      const seconds = Math.floor(this.resultData.time);
+      timeRow.textContent = `\u23F1\uFE0F じかん: ${seconds} びょう`;
     }
 
-    // 正解数
-    if (data.correct !== undefined) {
-      items.push({ label: 'せいかい', value: `${data.correct}` });
+    // 正解数を更新
+    const correctRow = this.container.querySelector('#stat-correct');
+    if (correctRow && this.resultData.correct !== undefined) {
+      correctRow.textContent = `\u2705 せいかい: ${this.resultData.correct} かい`;
     }
 
-    // 失敗数
-    if (data.mistakes !== undefined) {
-      items.push({ label: 'まちがい', value: `${data.mistakes}` });
+    // 励ましメッセージを更新
+    const encouragement = this.container.querySelector('#result-encouragement');
+    if (encouragement) {
+      encouragement.textContent = this._getEncouragementMessage();
     }
-
-    // 正解率
-    if (data.accuracy !== undefined) {
-      items.push({ label: 'せいかいりつ', value: `${Math.round(data.accuracy)}%` });
-    }
-
-    // ベストスコア比較
-    if (data.score !== undefined && data.bestScore !== undefined) {
-      if (data.score >= data.bestScore) {
-        items.push({
-          label: '',
-          value: 'じこベスト！',
-          highlight: true
-        });
-      }
-    }
-
-    return items;
-  }
-
-  /**
-   * 結果行を作成
-   */
-  _createResultRow(label, value, highlight = false) {
-    const row = document.createElement('div');
-    row.className = 'result-row' + (highlight ? ' highlight' : '');
-
-    if (label) {
-      const labelSpan = document.createElement('span');
-      labelSpan.className = 'result-label';
-      labelSpan.textContent = label;
-      row.appendChild(labelSpan);
-    }
-
-    const valueSpan = document.createElement('span');
-    valueSpan.className = 'result-value' + (highlight && !label ? ' centered' : '');
-    valueSpan.textContent = value;
-    row.appendChild(valueSpan);
-
-    return row;
   }
 
   /**
    * 励ましのメッセージを取得
    */
   _getEncouragementMessage() {
-    const messages = [
-      'おつかれさまでした',
-      'よく がんばりました',
-      'すばらしい！',
-      'また やってみてね'
-    ];
-
-    // 結果に応じたメッセージ
-    if (this.resultData) {
-      if (this.resultData.score >= this.resultData.bestScore) {
-        return 'あたらしい きろく！すごい！';
-      }
-      if (this.resultData.accuracy >= 90) {
-        return 'とても じょうず！';
-      }
-      if (this.resultData.accuracy >= 70) {
-        return 'よく がんばりました';
-      }
+    if (!this.resultData) {
+      return 'つぎもがんばろう! \u2B50';
     }
 
-    // ランダムに選択
-    return messages[Math.floor(Math.random() * messages.length)];
-  }
+    const score = this.resultData.score || 0;
+    const accuracy = this.resultData.accuracy || 0;
 
-  /**
-   * フッターを作成
-   */
-  _createFooter() {
-    const footer = document.createElement('footer');
-    footer.className = 'result-footer';
-
-    // リトライボタン（大きく）
-    const retryBtn = document.createElement('button');
-    retryBtn.className = 'result-btn retry-btn';
-    retryBtn.setAttribute('tabindex', '0');
-    retryBtn.setAttribute('aria-label', 'もういちど やる（Rキー）');
-    retryBtn.innerHTML = '<span class="btn-main">もういちど</span><span class="btn-hint">R</span>';
-    retryBtn.addEventListener('click', () => {
-      audio.play('click');
-      this._retry();
-    });
-    footer.appendChild(retryBtn);
-
-    // ホームボタン
-    const homeBtn = document.createElement('button');
-    homeBtn.className = 'result-btn home-btn';
-    homeBtn.setAttribute('tabindex', '0');
-    homeBtn.setAttribute('aria-label', 'ホームに もどる（Escキー）');
-    homeBtn.innerHTML = '<span class="btn-main">ホームへ</span><span class="btn-hint">Esc</span>';
-    homeBtn.addEventListener('click', () => {
-      audio.play('click');
-      this._goHome();
-    });
-    footer.appendChild(homeBtn);
-
-    return footer;
+    // スコアと正解率に基づいたメッセージ
+    if (score >= 80 || accuracy >= 90) {
+      return 'すごい! \u2B50\u2B50\u2B50';
+    } else if (score >= 50 || accuracy >= 70) {
+      return 'いいね! \u2B50\u2B50';
+    } else {
+      return 'つぎもがんばろう! \u2B50';
+    }
   }
 
   /**
@@ -250,13 +238,13 @@ export class ResultScreen {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: var(--color-background);
-        color: var(--color-text);
+        background: linear-gradient(180deg, #E8F5E9 0%, #FFFFFF 100%);
         display: flex;
-        flex-direction: column;
         justify-content: center;
         align-items: center;
-        font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+        padding: 32px;
+        box-sizing: border-box;
+        font-family: 'Hiragino Kaku Gothic ProN', '\u30E1\u30A4\u30EA\u30AA', sans-serif;
         opacity: 0;
         visibility: hidden;
         transition: opacity 0.3s ease;
@@ -268,163 +256,186 @@ export class ResultScreen {
         visibility: visible;
       }
 
-      /* メインコンテンツ */
-      .result-main {
+      /* 結果カード */
+      .result-card {
+        background: #FFFFFF;
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        max-width: 400px;
+        width: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 32px;
         text-align: center;
       }
 
-      .result-title {
-        font-size: var(--font-size-xxlarge);
-        font-weight: normal;
-        margin: 0 0 32px 0;
-        color: var(--color-text);
-      }
-
-      /* 結果コンテナ */
-      .result-container {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        min-width: 280px;
+      /* ヘッダー */
+      .result-header {
         margin-bottom: 24px;
       }
 
-      .result-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px 24px;
-        background-color: var(--color-surface);
-        border-radius: 12px;
-        border: 1px solid var(--color-border);
-      }
-
-      .result-row.highlight {
-        background-color: var(--color-primary);
-        border-color: var(--color-primary);
-      }
-
-      .result-row.highlight .result-label,
-      .result-row.highlight .result-value {
-        color: white;
-      }
-
-      .result-label {
-        font-size: var(--font-size-base);
-        color: var(--color-text-secondary);
-      }
-
-      .result-value {
-        font-size: var(--font-size-large);
+      .result-title {
+        font-size: 36px;
         font-weight: bold;
-        color: var(--color-text);
+        margin: 0 0 8px 0;
+        color: #333333;
       }
 
-      .result-value.centered {
-        text-align: center;
-        width: 100%;
-      }
-
-      .result-message {
-        font-size: var(--font-size-large);
-        color: var(--color-text-secondary);
+      .result-subtitle {
+        font-size: 24px;
         margin: 0;
-        padding: 16px;
+        color: #666666;
       }
 
-      /* フッター */
-      .result-footer {
+      /* スコアバッジ */
+      .score-badge {
+        width: 120px;
+        height: 120px;
+        background: #5C6BC0;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .score-number {
+        font-size: 48px;
+        font-weight: bold;
+        color: #FFFFFF;
+        line-height: 1;
+      }
+
+      .score-label {
+        font-size: 18px;
+        color: #FFFFFF;
+        margin-top: 4px;
+      }
+
+      /* 励ましメッセージ */
+      .result-encouragement {
+        font-size: 24px;
+        color: #5C6BC0;
+        margin: 8px 0 24px 0;
+        font-weight: bold;
+      }
+
+      /* 統計情報 */
+      .result-stats {
         display: flex;
         flex-direction: column;
         gap: 16px;
-        padding: 24px;
+        margin-bottom: 32px;
         width: 100%;
-        max-width: 320px;
+      }
+
+      .stat-row {
+        font-size: 20px;
+        color: #333333;
+        text-align: center;
+      }
+
+      /* ボタン */
+      .result-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        width: 100%;
       }
 
       .result-btn {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 12px;
         width: 100%;
-        min-height: 64px;
-        padding: 20px 32px;
-        font-size: var(--font-size-large);
+        font-size: 20px;
+        font-weight: bold;
+        border: none;
         border-radius: 16px;
         cursor: pointer;
-        transition: background-color 0.2s, transform 0.1s;
+        transition: transform 0.1s, opacity 0.2s;
+        font-family: inherit;
       }
 
       .result-btn:focus {
         outline: none;
-        box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.3);
+        box-shadow: 0 0 0 4px rgba(92, 107, 192, 0.3);
       }
 
       .result-btn:active {
         transform: scale(0.98);
       }
 
-      .btn-main {
-        font-weight: bold;
-      }
-
-      .btn-hint {
-        font-size: var(--font-size-small);
-        opacity: 0.7;
-        padding: 4px 8px;
-        background-color: rgba(0, 0, 0, 0.1);
-        border-radius: 4px;
-      }
-
-      /* リトライボタン（大きく強調） */
+      /* リトライボタン */
       .retry-btn {
-        background-color: var(--color-primary);
-        color: white;
-        border: 3px solid var(--color-primary);
-        min-height: 80px;
-        font-size: var(--font-size-xlarge);
+        background: #4CAF50;
+        color: #FFFFFF;
+        height: 60px;
       }
 
       .retry-btn:hover {
-        background-color: var(--color-primary-hover);
-        border-color: var(--color-primary-hover);
-      }
-
-      .retry-btn .btn-hint {
-        background-color: rgba(255, 255, 255, 0.2);
+        opacity: 0.9;
       }
 
       /* ホームボタン */
       .home-btn {
-        background-color: var(--color-surface);
-        color: var(--color-text);
-        border: 2px solid var(--color-border);
+        background: #F5F5F5;
+        color: #757575;
+        height: 56px;
       }
 
       .home-btn:hover {
-        background-color: var(--color-border);
+        background: #EEEEEE;
       }
 
       /* レスポンシブ */
       @media (max-width: 480px) {
-        .result-main {
-          padding: 24px 16px;
-        }
-
-        .result-container {
-          min-width: 100%;
-          width: 100%;
-          padding: 0 16px;
-          box-sizing: border-box;
-        }
-
-        .result-footer {
+        .result-screen {
           padding: 16px;
+        }
+
+        .result-card {
+          padding: 32px 24px;
+        }
+
+        .result-title {
+          font-size: 32px;
+        }
+
+        .result-subtitle {
+          font-size: 20px;
+        }
+
+        .score-badge {
+          width: 100px;
+          height: 100px;
+        }
+
+        .score-number {
+          font-size: 40px;
+        }
+
+        .score-label {
+          font-size: 16px;
+        }
+
+        .result-encouragement {
+          font-size: 20px;
+        }
+
+        .stat-row {
+          font-size: 18px;
+        }
+
+        .result-btn {
+          font-size: 18px;
+        }
+
+        .retry-btn {
+          height: 56px;
+        }
+
+        .home-btn {
+          height: 52px;
         }
       }
     `;

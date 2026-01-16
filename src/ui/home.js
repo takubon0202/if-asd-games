@@ -1,11 +1,36 @@
 /**
  * Home画面 - ゲーム選択
  * ASD&LD向け「目の動き」トレーニングWebゲーム
+ *
+ * デザインガイドライン準拠版
  */
 
 import { stateMachine, GameState } from '../engine/state.js';
 import { theme } from '../engine/theme.js';
 import { audio } from '../engine/audio.js';
+
+// カラーパレット
+const COLORS = {
+  // 背景色
+  background: '#FAFAFA',
+  surface: '#FFFFFF',
+
+  // ゲームカード背景（ソフトパステル）
+  gameA: { bg: '#E3F2FD', hover: '#BBDEFB', border: '#90CAF9' },  // 水色
+  gameB: { bg: '#E8F5E9', hover: '#C8E6C9', border: '#A5D6A7' },  // 緑
+  gameC: { bg: '#FFF3E0', hover: '#FFE0B2', border: '#FFCC80' },  // オレンジ
+
+  // アクセント
+  primary: '#5C6BC0',      // インディゴ（落ち着いた青紫）
+  primaryHover: '#3F51B5',
+
+  // テキスト
+  text: '#37474F',         // ダークグレー（柔らかい黒）
+  textSecondary: '#78909C',
+
+  // フッター
+  footer: '#F5F5F5',
+};
 
 // ゲーム情報
 const GAMES = [
@@ -15,8 +40,7 @@ const GAMES = [
     title: 'おいかけっこ',
     description: 'うごく まるを めで おいかける',
     icon: '👀',
-    bgColor: '#E3F2FD',
-    hoverColor: '#BBDEFB'
+    colors: COLORS.gameA
   },
   {
     id: 'gameB',
@@ -24,17 +48,15 @@ const GAMES = [
     title: 'みつけよう',
     description: 'かくれた しるしを さがす',
     icon: '🔍',
-    bgColor: '#E8F5E9',
-    hoverColor: '#C8E6C9'
+    colors: COLORS.gameB
   },
   {
     id: 'gameC',
     name: 'ゲーム C',
     title: 'じゅんばん',
     description: 'すうじを じゅんばんに おす',
-    icon: '①②③',
-    bgColor: '#FFF3E0',
-    hoverColor: '#FFE0B2'
+    icon: '🔢',
+    colors: COLORS.gameC
   }
 ];
 
@@ -84,11 +106,23 @@ export class HomeScreen {
     const header = document.createElement('header');
     header.className = 'home-header';
 
+    // タイトルコンテナ
+    const titleContainer = document.createElement('div');
+    titleContainer.className = 'header-title-container';
+
     // タイトル
     const title = document.createElement('h1');
     title.className = 'home-title';
-    title.textContent = 'めの うんどう';
-    header.appendChild(title);
+    title.textContent = 'めのうんどう';
+    titleContainer.appendChild(title);
+
+    // サブタイトル
+    const subtitle = document.createElement('p');
+    subtitle.className = 'home-subtitle';
+    subtitle.textContent = 'たのしく トレーニング';
+    titleContainer.appendChild(subtitle);
+
+    header.appendChild(titleContainer);
 
     // ボタングループ
     const buttonGroup = document.createElement('div');
@@ -206,9 +240,7 @@ export class HomeScreen {
 
     const notice = document.createElement('p');
     notice.className = 'notice-text';
-    notice.innerHTML =
-      'つかれたら やすんでね<br>' +
-      'むりを しないで たのしもう';
+    notice.textContent = 'つかれたら やすんでね 😊';
     footer.appendChild(notice);
 
     return footer;
@@ -229,11 +261,11 @@ export class HomeScreen {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: var(--color-background);
-        color: var(--color-text);
+        background-color: ${COLORS.background};
+        color: ${COLORS.text};
         display: flex;
         flex-direction: column;
-        font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+        font-family: system-ui, -apple-system, sans-serif;
         opacity: 0;
         visibility: hidden;
         transition: opacity 0.3s ease;
@@ -245,20 +277,33 @@ export class HomeScreen {
         visibility: visible;
       }
 
-      /* ヘッダー */
+      /* ヘッダー - グラデーション背景 */
       .home-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 16px 24px;
-        border-bottom: 1px solid var(--color-border);
+        padding: 24px 32px;
+        background: linear-gradient(135deg, ${COLORS.primary} 0%, #7986CB 100%);
+        color: white;
+      }
+
+      .header-title-container {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
       }
 
       .home-title {
-        font-size: var(--font-size-xlarge);
-        font-weight: normal;
+        font-size: 32px;
+        font-weight: bold;
         margin: 0;
-        color: var(--color-text);
+        color: white;
+      }
+
+      .home-subtitle {
+        font-size: 18px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.9);
       }
 
       .header-buttons {
@@ -272,29 +317,29 @@ export class HomeScreen {
         gap: 8px;
         padding: 12px 20px;
         min-height: 48px;
-        background-color: var(--color-surface);
-        color: var(--color-text);
-        border: 2px solid var(--color-border);
-        border-radius: 8px;
-        font-size: var(--font-size-base);
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-radius: 12px;
+        font-size: 16px;
         cursor: pointer;
-        transition: background-color 0.2s, border-color 0.2s;
+        transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
       }
 
       .header-btn:hover,
       .header-btn:focus {
-        background-color: var(--color-primary);
-        border-color: var(--color-primary);
-        color: white;
+        background-color: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.6);
+        transform: translateY(-2px);
         outline: none;
       }
 
       .header-btn:focus {
-        box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.3);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
       }
 
       .btn-icon {
-        font-size: var(--font-size-large);
+        font-size: 20px;
       }
 
       /* メインコンテンツ */
@@ -304,15 +349,15 @@ export class HomeScreen {
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 24px;
+        padding: 32px;
         overflow-y: auto;
       }
 
       .section-title {
-        font-size: var(--font-size-large);
-        font-weight: normal;
+        font-size: 24px;
+        font-weight: bold;
         margin: 0 0 32px 0;
-        color: var(--color-text-secondary);
+        color: ${COLORS.text};
       }
 
       /* ゲームカードグリッド */
@@ -320,8 +365,8 @@ export class HomeScreen {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 24px;
-        max-width: 1000px;
+        gap: 32px;
+        max-width: 1100px;
       }
 
       .game-card {
@@ -329,96 +374,120 @@ export class HomeScreen {
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        width: 280px;
-        height: 220px;
+        width: 300px;
+        height: 240px;
         padding: 24px;
-        background-color: var(--color-surface);
-        border: 3px solid var(--color-border);
+        background-color: ${COLORS.surface};
+        border: 3px solid transparent;
         border-radius: 24px;
         cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
       }
 
       .game-card:hover,
       .game-card:focus {
-        transform: translateY(-4px);
-        border-color: var(--color-primary);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        transform: translateY(-8px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
         outline: none;
       }
 
       .game-card:focus {
-        box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.3);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15), 0 0 0 4px rgba(92, 107, 192, 0.3);
       }
 
-      /* Game A - おいかけっこ (柔らかい水色) */
+      /* Game A - おいかけっこ (水色) */
       .game-card[data-game-id="gameA"] {
-        background-color: #E3F2FD;
+        background-color: ${COLORS.gameA.bg};
+        border-color: ${COLORS.gameA.border};
       }
       .game-card[data-game-id="gameA"]:hover,
       .game-card[data-game-id="gameA"]:focus {
-        background-color: #BBDEFB;
+        background-color: ${COLORS.gameA.hover};
       }
 
-      /* Game B - みつけよう (柔らかい緑色) */
+      /* Game B - みつけよう (緑) */
       .game-card[data-game-id="gameB"] {
-        background-color: #E8F5E9;
+        background-color: ${COLORS.gameB.bg};
+        border-color: ${COLORS.gameB.border};
       }
       .game-card[data-game-id="gameB"]:hover,
       .game-card[data-game-id="gameB"]:focus {
-        background-color: #C8E6C9;
+        background-color: ${COLORS.gameB.hover};
       }
 
-      /* Game C - じゅんばん (柔らかいオレンジ) */
+      /* Game C - じゅんばん (オレンジ) */
       .game-card[data-game-id="gameC"] {
-        background-color: #FFF3E0;
+        background-color: ${COLORS.gameC.bg};
+        border-color: ${COLORS.gameC.border};
       }
       .game-card[data-game-id="gameC"]:hover,
       .game-card[data-game-id="gameC"]:focus {
-        background-color: #FFE0B2;
+        background-color: ${COLORS.gameC.hover};
       }
 
       .game-icon {
-        font-size: 56px;
+        font-size: 64px;
         margin-bottom: 16px;
-        color: var(--color-primary);
+        line-height: 1;
       }
 
       .game-name {
-        font-size: var(--font-size-xlarge);
+        font-size: 24px;
         font-weight: bold;
         margin-bottom: 8px;
-        color: var(--color-text);
+        color: ${COLORS.text};
         text-align: center;
       }
 
       .game-desc {
-        font-size: var(--font-size-base);
-        color: var(--color-text-secondary);
+        font-size: 18px;
+        color: ${COLORS.textSecondary};
         text-align: center;
         line-height: 1.4;
       }
 
-      /* フッター */
+      /* フッター - 角丸上部 */
       .home-footer {
-        padding: 16px 24px;
+        padding: 20px 24px;
         text-align: center;
-        border-top: 1px solid var(--color-border);
-        background-color: var(--color-surface);
+        background-color: ${COLORS.footer};
+        border-radius: 24px 24px 0 0;
       }
 
       .notice-text {
-        font-size: var(--font-size-base);
-        color: var(--color-text-secondary);
+        font-size: 18px;
+        color: ${COLORS.textSecondary};
         margin: 0;
         line-height: 1.6;
       }
 
       /* レスポンシブ */
+      @media (max-width: 1024px) {
+        .game-grid {
+          gap: 24px;
+        }
+
+        .game-card {
+          width: 280px;
+          height: 220px;
+        }
+      }
+
       @media (max-width: 768px) {
         .home-header {
           flex-direction: column;
           gap: 16px;
+          padding: 20px 24px;
+          text-align: center;
+        }
+
+        .home-title {
+          font-size: 28px;
+        }
+
+        .home-subtitle {
+          font-size: 16px;
         }
 
         .game-grid {
@@ -429,11 +498,56 @@ export class HomeScreen {
         .game-card {
           width: 100%;
           max-width: 320px;
-          height: 200px;
+          height: 220px;
+        }
+
+        .game-icon {
+          font-size: 56px;
+        }
+
+        .game-name {
+          font-size: 22px;
+        }
+
+        .game-desc {
+          font-size: 16px;
         }
 
         .header-btn .btn-text {
           display: none;
+        }
+
+        .section-title {
+          font-size: 20px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .home-main {
+          padding: 24px 16px;
+        }
+
+        .game-card {
+          max-width: 100%;
+          height: 200px;
+          padding: 20px;
+        }
+
+        .game-icon {
+          font-size: 48px;
+          margin-bottom: 12px;
+        }
+
+        .game-name {
+          font-size: 20px;
+        }
+
+        .game-desc {
+          font-size: 15px;
+        }
+
+        .notice-text {
+          font-size: 16px;
         }
       }
     `;

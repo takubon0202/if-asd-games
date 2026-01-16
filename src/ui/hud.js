@@ -44,7 +44,7 @@ export class GameHUD {
 
     const timeLabel = document.createElement('span');
     timeLabel.className = 'hud-label';
-    timeLabel.textContent = 'じかん';
+    timeLabel.textContent = '⏱️ じかん';
     timeLabel.setAttribute('aria-hidden', 'true');
     timeSection.appendChild(timeLabel);
 
@@ -61,7 +61,7 @@ export class GameHUD {
     this.pauseButton.className = 'hud-pause-btn';
     this.pauseButton.setAttribute('tabindex', '0');
     this.pauseButton.setAttribute('aria-label', 'いちじていし');
-    this.pauseButton.textContent = '| |';
+    this.pauseButton.textContent = '⏸️';
     this.pauseButton.addEventListener('click', () => {
       audio.play('click');
       this._togglePause();
@@ -74,7 +74,7 @@ export class GameHUD {
 
     const scoreLabel = document.createElement('span');
     scoreLabel.className = 'hud-label';
-    scoreLabel.textContent = 'スコア';
+    scoreLabel.textContent = '⭐ スコア';
     scoreLabel.setAttribute('aria-hidden', 'true');
     scoreSection.appendChild(scoreLabel);
 
@@ -111,7 +111,7 @@ export class GameHUD {
 
     const title = document.createElement('h2');
     title.className = 'pause-title';
-    title.textContent = 'いちじていし';
+    title.textContent = 'いちじていし ⏸️';
     content.appendChild(title);
 
     const buttons = document.createElement('div');
@@ -153,6 +153,7 @@ export class GameHUD {
 
   /**
    * スタイルを適用
+   * ASD/LD向けデザインガイドラインに基づく
    */
   _applyStyles() {
     if (document.getElementById('hud-styles')) return;
@@ -160,7 +161,7 @@ export class GameHUD {
     const style = document.createElement('style');
     style.id = 'hud-styles';
     style.textContent = `
-      /* HUDコンテナ */
+      /* HUDコンテナ - 半透明白背景、ソフトな影 */
       .game-hud {
         position: fixed;
         top: 0;
@@ -169,13 +170,13 @@ export class GameHUD {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 24px;
-        background-color: var(--color-surface);
-        border-bottom: 1px solid var(--color-border);
+        padding: 16px 24px;
+        background-color: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
         opacity: 0;
         visibility: hidden;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.2s ease-out;
         z-index: 500;
       }
 
@@ -184,53 +185,67 @@ export class GameHUD {
         visibility: visible;
       }
 
-      /* HUDセクション */
+      /* HUDセクション - 時間・スコア共通 */
       .hud-section {
         display: flex;
         flex-direction: column;
         align-items: center;
-        min-width: 80px;
+        padding: 8px 16px;
+        border-radius: 12px;
+        min-width: 100px;
+      }
+
+      /* 時間セクション - ソフトな青背景 */
+      .hud-time {
+        background-color: #E3F2FD;
+      }
+
+      /* スコアセクション - ソフトなオレンジ背景 */
+      .hud-score {
+        background-color: #FFF3E0;
       }
 
       .hud-label {
-        font-size: var(--font-size-small);
-        color: var(--color-text-secondary);
+        font-size: 14px;
+        color: #666666;
         margin-bottom: 4px;
+        font-weight: 500;
       }
 
       .hud-value {
-        font-size: var(--font-size-large);
+        font-size: 28px;
         font-weight: bold;
-        color: var(--color-text);
+        color: #333333;
       }
 
-      /* 一時停止ボタン */
+      /* 一時停止ボタン - 円形、インディゴ背景 */
       .hud-pause-btn {
         display: flex;
         justify-content: center;
         align-items: center;
-        width: 48px;
-        height: 48px;
-        background-color: var(--color-background);
-        color: var(--color-text);
-        border: 2px solid var(--color-border);
-        border-radius: 50%;
-        font-size: var(--font-size-base);
-        font-weight: bold;
-        cursor: pointer;
-        transition: background-color 0.2s, border-color 0.2s;
-      }
-
-      .hud-pause-btn:hover,
-      .hud-pause-btn:focus {
-        background-color: var(--color-primary);
-        border-color: var(--color-primary);
+        width: 56px;
+        height: 56px;
+        background-color: #5C6BC0;
         color: white;
-        outline: none;
+        border: none;
+        border-radius: 50%;
+        font-size: 24px;
+        cursor: pointer;
+        transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+      }
+
+      .hud-pause-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(92, 107, 192, 0.4);
       }
 
       .hud-pause-btn:focus {
-        box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.3);
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(92, 107, 192, 0.3);
+      }
+
+      .hud-pause-btn:active {
+        transform: scale(1.05);
       }
 
       /* 一時停止オーバーレイ */
@@ -240,13 +255,13 @@ export class GameHUD {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: rgba(0, 0, 0, 0.6);
         display: flex;
         justify-content: center;
         align-items: center;
         opacity: 0;
         visibility: hidden;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.2s ease-out;
         z-index: 600;
       }
 
@@ -255,20 +270,22 @@ export class GameHUD {
         visibility: visible;
       }
 
+      /* 一時停止ダイアログ */
       .pause-content {
-        background-color: var(--color-background);
+        background-color: #FFFFFF;
         padding: 40px;
-        border-radius: 16px;
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         text-align: center;
-        max-width: 320px;
+        max-width: 360px;
         width: 90%;
       }
 
       .pause-title {
-        font-size: var(--font-size-xlarge);
-        font-weight: normal;
+        font-size: 32px;
+        font-weight: bold;
         margin: 0 0 32px 0;
-        color: var(--color-text);
+        color: #333333;
       }
 
       .pause-buttons {
@@ -279,58 +296,70 @@ export class GameHUD {
 
       .pause-btn {
         width: 100%;
-        min-height: 56px;
-        padding: 16px 24px;
-        font-size: var(--font-size-large);
-        border-radius: 12px;
+        height: 56px;
+        padding: 0 24px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 16px;
         cursor: pointer;
-        transition: background-color 0.2s, transform 0.1s;
+        transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
       }
 
       .pause-btn:focus {
         outline: none;
-        box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.3);
       }
 
       .pause-btn:active {
         transform: scale(0.98);
       }
 
+      /* つづけるボタン - 緑背景 */
       .resume-btn {
-        background-color: var(--color-primary);
+        background-color: #4CAF50;
         color: white;
-        border: 2px solid var(--color-primary);
+        border: none;
       }
 
       .resume-btn:hover {
-        background-color: var(--color-primary-hover);
-        border-color: var(--color-primary-hover);
+        background-color: #43A047;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
       }
 
+      .resume-btn:focus {
+        box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3);
+      }
+
+      /* やめるボタン - グレー背景 */
       .pause-btn.home-btn {
-        background-color: var(--color-surface);
-        color: var(--color-text);
-        border: 2px solid var(--color-border);
+        background-color: #F5F5F5;
+        color: #666666;
+        border: none;
       }
 
       .pause-btn.home-btn:hover {
-        background-color: var(--color-border);
+        background-color: #EEEEEE;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .pause-btn.home-btn:focus {
+        box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
       }
 
       .pause-hint {
         margin: 24px 0 0 0;
-        font-size: var(--font-size-small);
-        color: var(--color-text-secondary);
+        font-size: 14px;
+        color: #999999;
       }
 
       /* レスポンシブ */
       @media (max-width: 480px) {
         .game-hud {
-          padding: 8px 16px;
+          padding: 12px 16px;
         }
 
         .hud-section {
-          min-width: 60px;
+          min-width: 80px;
+          padding: 6px 12px;
         }
 
         .hud-label {
@@ -338,12 +367,26 @@ export class GameHUD {
         }
 
         .hud-value {
-          font-size: var(--font-size-base);
+          font-size: 22px;
         }
 
         .hud-pause-btn {
-          width: 40px;
-          height: 40px;
+          width: 48px;
+          height: 48px;
+          font-size: 20px;
+        }
+
+        .pause-content {
+          padding: 32px 24px;
+        }
+
+        .pause-title {
+          font-size: 26px;
+        }
+
+        .pause-btn {
+          height: 52px;
+          font-size: 16px;
         }
       }
     `;
