@@ -371,7 +371,8 @@ export class GameB_Readline {
     const ctx = this.ctx;
     const colors = theme.getColors();
 
-    // 背景クリア
+    // 背景を確実にクリアして塗りつぶし
+    ctx.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
     ctx.fillStyle = colors.background;
     ctx.fillRect(0, 0, this.logicalWidth, this.logicalHeight);
 

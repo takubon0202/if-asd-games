@@ -14,21 +14,27 @@ const GAMES = [
     name: 'ゲーム A',
     title: 'おいかけっこ',
     description: 'うごく まるを めで おいかける',
-    icon: '○'
+    icon: '👀',
+    bgColor: '#E3F2FD',
+    hoverColor: '#BBDEFB'
   },
   {
     id: 'gameB',
     name: 'ゲーム B',
     title: 'みつけよう',
     description: 'かくれた しるしを さがす',
-    icon: '◎'
+    icon: '🔍',
+    bgColor: '#E8F5E9',
+    hoverColor: '#C8E6C9'
   },
   {
     id: 'gameC',
     name: 'ゲーム C',
     title: 'じゅんばん',
     description: 'すうじを じゅんばんに おす',
-    icon: '123'
+    icon: '①②③',
+    bgColor: '#FFF3E0',
+    hoverColor: '#FFE0B2'
   }
 ];
 
@@ -315,7 +321,7 @@ export class HomeScreen {
         flex-wrap: wrap;
         justify-content: center;
         gap: 24px;
-        max-width: 900px;
+        max-width: 1000px;
       }
 
       .game-card {
@@ -323,14 +329,14 @@ export class HomeScreen {
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        width: 240px;
-        height: 200px;
+        width: 280px;
+        height: 220px;
         padding: 24px;
         background-color: var(--color-surface);
         border: 3px solid var(--color-border);
-        border-radius: 16px;
+        border-radius: 24px;
         cursor: pointer;
-        transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
       }
 
       .game-card:hover,
@@ -345,17 +351,45 @@ export class HomeScreen {
         box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.3);
       }
 
+      /* Game A - おいかけっこ (柔らかい水色) */
+      .game-card[data-game-id="gameA"] {
+        background-color: #E3F2FD;
+      }
+      .game-card[data-game-id="gameA"]:hover,
+      .game-card[data-game-id="gameA"]:focus {
+        background-color: #BBDEFB;
+      }
+
+      /* Game B - みつけよう (柔らかい緑色) */
+      .game-card[data-game-id="gameB"] {
+        background-color: #E8F5E9;
+      }
+      .game-card[data-game-id="gameB"]:hover,
+      .game-card[data-game-id="gameB"]:focus {
+        background-color: #C8E6C9;
+      }
+
+      /* Game C - じゅんばん (柔らかいオレンジ) */
+      .game-card[data-game-id="gameC"] {
+        background-color: #FFF3E0;
+      }
+      .game-card[data-game-id="gameC"]:hover,
+      .game-card[data-game-id="gameC"]:focus {
+        background-color: #FFE0B2;
+      }
+
       .game-icon {
-        font-size: 48px;
+        font-size: 56px;
         margin-bottom: 16px;
         color: var(--color-primary);
       }
 
       .game-name {
-        font-size: var(--font-size-large);
+        font-size: var(--font-size-xlarge);
         font-weight: bold;
         margin-bottom: 8px;
         color: var(--color-text);
+        text-align: center;
       }
 
       .game-desc {
@@ -394,7 +428,8 @@ export class HomeScreen {
 
         .game-card {
           width: 100%;
-          max-width: 300px;
+          max-width: 320px;
+          height: 200px;
         }
 
         .header-btn .btn-text {

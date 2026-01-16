@@ -393,6 +393,9 @@ class App {
         }
       }
 
+      // キャンバスをリサイズ（コンテナが表示された後に実行）
+      this.canvasScaling.resize();
+
       // 設定を取得
       const settings = storage.getSettings();
 

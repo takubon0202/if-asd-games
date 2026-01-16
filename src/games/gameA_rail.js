@@ -62,6 +62,10 @@ export class GameA_Rail {
     this.ctx = ctx;
     this.settings = settings;
 
+    // 論理サイズ（CanvasScalingと同じ値）
+    this.logicalWidth = 800;
+    this.logicalHeight = 600;
+
     // ゲーム状態
     this.isRunning = false;
     this.isPaused = false;
@@ -179,9 +183,10 @@ export class GameA_Rail {
     const ctx = this.ctx;
     const colors = theme.getColors();
 
-    // 背景を塗りつぶし
+    // 背景を確実にクリアして塗りつぶし
+    ctx.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
     ctx.fillStyle = colors.background;
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.fillRect(0, 0, this.logicalWidth, this.logicalHeight);
 
     // レールを描画
     this._drawRail();
@@ -190,7 +195,8 @@ export class GameA_Rail {
     this._drawDot();
 
     // HUD（残り時間・スコア）を描画
-    this._drawHUD();
+    // 注意: HTML HUD（src/ui/hud.js）と重複するためコメントアウト
+    // this._drawHUD();
   }
 
   /**
@@ -263,8 +269,8 @@ export class GameA_Rail {
    * レールパスを生成（内部メソッド）
    */
   _generateRailPath() {
-    const width = this.canvas.width;
-    const height = this.canvas.height;
+    const width = this.logicalWidth;
+    const height = this.logicalHeight;
     const padding = 60;
 
     this.railPath = [];
@@ -394,14 +400,15 @@ export class GameA_Rail {
       ctx.lineTo(this.railPath[i].x, this.railPath[i].y);
     }
 
-    // ガイド表示に応じて線の濃さを変更
-    ctx.strokeStyle = this.showGuide
-      ? colors.textSecondary
-      : colors.border;
-    ctx.lineWidth = this.showGuide ? 4 : 2;
+    // レールの線を太く（6px）し、薄い青色で描画
+    // テーマのprimary色を薄くして使用
+    ctx.globalAlpha = this.showGuide ? 0.4 : 0.25;
+    ctx.strokeStyle = colors.primary;
+    ctx.lineWidth = 6;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.stroke();
+    ctx.globalAlpha = 1.0;
 
     // 中間地点のゾーンを薄く表示（ガイドONの場合）
     if (this.showGuide) {
@@ -440,13 +447,18 @@ export class GameA_Rail {
     const ctx = this.ctx;
     const colors = theme.getColors();
 
-    Draw.circle(ctx, this.dotPosition.x, this.dotPosition.y, this.dotSize);
+    // ドットサイズを20%大きくする
+    const enlargedSize = this.dotSize * 1.2;
+
+    Draw.circle(ctx, this.dotPosition.x, this.dotPosition.y, enlargedSize);
+
+    // 明るい青色で描画（テーマのprimary色を使用）
     ctx.fillStyle = colors.primary;
     ctx.fill();
 
-    // 点の周りに薄い縁取り
-    ctx.strokeStyle = colors.text;
-    ctx.lineWidth = 2;
+    // 白い縁取りを追加（線幅3px）
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
     ctx.stroke();
   }
 
@@ -470,13 +482,13 @@ export class GameA_Rail {
     if (this.timeLimit !== Infinity) {
       const remaining = Math.max(0, Math.ceil(this.timeLimit - this.elapsedTime));
       ctx.textAlign = 'right';
-      ctx.fillText(`のこり: ${remaining}びょう`, this.canvas.width - 20, 20);
+      ctx.fillText(`のこり: ${remaining}びょう`, this.logicalWidth - 20, 20);
     }
 
     // 周回数表示（円の場合）
     if (this.railType === 'circle') {
       ctx.textAlign = 'center';
-      ctx.fillText(`${this.lapCount + 1}しゅうめ`, this.canvas.width / 2, 20);
+      ctx.fillText(`${this.lapCount + 1}しゅうめ`, this.logicalWidth / 2, 20);
     }
   }
 
