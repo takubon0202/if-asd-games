@@ -1,43 +1,85 @@
 /* ============================================
-   CSS Variables - Theme Management
+   CSS Variables - ASD/LD対応テーマ管理
    ============================================ */
 
 :root {
-  /* Base Colors */
-  --color-background: #ffffff;
-  --color-text: #333333;
-  --color-text-secondary: #666666;
-  --color-accent: #4a90d9;
-  --color-accent-hover: #3a7bc8;
-  --color-border: #cccccc;
-  --color-surface: #f5f5f5;
+  /* ASD向け推奨カラーパレット */
+  --color-primary: #5C6BC0;
+  --color-primary-light: #7986CB;
+  --color-primary-dark: #3F51B5;
+  --color-background: #FAFAFA;
+  --color-surface: #FFFFFF;
+  --color-text: #37474F;
+  --color-text-secondary: #546E7A;
+  --color-border: #CFD8DC;
+  --color-success: #81C784;
+  --color-warning: #FFB74D;
 
-  /* Font Sizes */
-  --font-size-base: 1rem;
-  --font-size-large: 1.25rem;
-  --font-size-xlarge: 1.5rem;
-  --font-size-title: 2rem;
+  /* 後方互換性のためのエイリアス */
+  --color-accent: var(--color-primary);
+  --color-accent-hover: var(--color-primary-dark);
 
-  /* Spacing */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
+  /* フォント */
+  --font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', system-ui, sans-serif;
+  --font-size-base: 16px;
+  --font-size-sm: 14px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
 
-  /* Button */
-  --button-min-size: 48px;
-  --button-padding: 0.75rem 1.5rem;
-  --button-border-radius: 8px;
+  /* 後方互換性のためのエイリアス */
+  --font-size-large: var(--font-size-lg);
+  --font-size-xlarge: var(--font-size-2xl);
+  --font-size-title: var(--font-size-3xl);
 
-  /* Transitions - Gentle, not jarring */
-  --transition-opacity: opacity 0.2s ease-out;
-  --transition-color: color 0.15s ease-out, background-color 0.15s ease-out;
+  /* 間隔 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
 
-  /* Focus */
+  /* タッチターゲット */
+  --touch-target-min: 44px;
+  --touch-target-recommended: 56px;
+
+  /* 後方互換性のためのエイリアス */
+  --button-min-size: var(--touch-target-min);
+  --button-padding: 12px 24px;
+  --button-border-radius: var(--radius-md);
+
+  /* アニメーション */
+  --transition-fast: 150ms;
+  --transition-normal: 250ms;
+  --transition-slow: 350ms;
+
+  /* 後方互換性のためのエイリアス */
+  --transition-opacity: opacity var(--transition-normal) ease-out;
+  --transition-color: color var(--transition-fast) ease-out, background-color var(--transition-fast) ease-out;
+
+  /* 角丸 */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* シャドウ */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.12);
+
+  /* フォーカス */
   --focus-outline-width: 3px;
   --focus-outline-offset: 2px;
-  --focus-outline-color: var(--color-accent);
+  --focus-outline-color: var(--color-primary);
+
+  /* ブレイクポイント（参照用コメント） */
+  /* --bp-mobile: 480px */
+  /* --bp-tablet: 768px */
+  /* --bp-desktop: 1024px */
+  /* --bp-desktop-lg: 1200px */
 }
 
 /* ============================================
@@ -46,11 +88,11 @@
 
 /* White Theme (Default) */
 [data-theme="white"] {
-  --color-background: #ffffff;
-  --color-text: #333333;
-  --color-text-secondary: #666666;
-  --color-surface: #f5f5f5;
-  --color-border: #cccccc;
+  --color-background: #FAFAFA;
+  --color-text: #37474F;
+  --color-text-secondary: #546E7A;
+  --color-surface: #FFFFFF;
+  --color-border: #CFD8DC;
 }
 
 /* Cream Theme */
@@ -76,8 +118,11 @@
   --color-background: #1e1e1e;
   --color-text: #e0e0e0;
   --color-text-secondary: #b0b0b0;
-  --color-accent: #6ab0f3;
-  --color-accent-hover: #8ac4f7;
+  --color-primary: #7986CB;
+  --color-primary-light: #9FA8DA;
+  --color-primary-dark: #5C6BC0;
+  --color-accent: #7986CB;
+  --color-accent-hover: #9FA8DA;
   --color-surface: #2d2d2d;
   --color-border: #444444;
 }
@@ -117,17 +162,34 @@
    ============================================ */
 
 [data-font-size="medium"] {
-  --font-size-base: 1rem;
-  --font-size-large: 1.25rem;
-  --font-size-xlarge: 1.5rem;
-  --font-size-title: 2rem;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
 }
 
 [data-font-size="large"] {
-  --font-size-base: 1.25rem;
-  --font-size-large: 1.5rem;
-  --font-size-xlarge: 1.75rem;
-  --font-size-title: 2.5rem;
+  --font-size-base: 20px;
+  --font-size-lg: 22px;
+  --font-size-xl: 26px;
+  --font-size-2xl: 30px;
+  --font-size-3xl: 40px;
+}
+
+/* ============================================
+   Accessibility - Reduced Motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ============================================
@@ -148,13 +210,22 @@ html {
 body {
   margin: 0;
   padding: 0;
-  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
-  font-size: var(--font-size-base);
+  font-family: var(--font-family);
+  font-size: clamp(16px, 2vw + 12px, 20px);
   line-height: 1.6;
   color: var(--color-text);
   background-color: var(--color-background);
   min-height: 100vh;
   min-height: 100dvh;
+}
+
+/* ============================================
+   Focus Styles - Improved Accessibility
+   ============================================ */
+
+:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* ============================================
@@ -181,7 +252,7 @@ body {
 
 .app-title {
   margin: 0;
-  font-size: var(--font-size-xlarge);
+  font-size: var(--font-size-2xl);
   font-weight: bold;
   color: var(--color-text);
 }
@@ -215,7 +286,7 @@ body {
   padding: var(--spacing-lg);
   opacity: 0;
   visibility: hidden;
-  transition: var(--transition-opacity), visibility 0.2s ease-out;
+  transition: var(--transition-opacity), visibility var(--transition-normal) ease-out;
 }
 
 .screen--active {
@@ -231,14 +302,14 @@ body {
 
 .screen-title {
   margin: 0 0 var(--spacing-lg);
-  font-size: var(--font-size-title);
+  font-size: var(--font-size-3xl);
   font-weight: bold;
   color: var(--color-text);
 }
 
 .screen-description {
   margin: 0 0 var(--spacing-xl);
-  font-size: var(--font-size-large);
+  font-size: var(--font-size-lg);
   color: var(--color-text-secondary);
 }
 
@@ -250,15 +321,15 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: var(--button-min-size);
-  min-height: var(--button-min-size);
-  padding: var(--button-padding);
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  padding: var(--spacing-sm) var(--spacing-lg);
   font-family: inherit;
-  font-size: var(--font-size-large);
+  font-size: var(--font-size-lg);
   font-weight: bold;
   text-decoration: none;
   border: 2px solid transparent;
-  border-radius: var(--button-border-radius);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: var(--transition-color);
   user-select: none;
@@ -282,18 +353,18 @@ body {
 
 /* Primary Button */
 .btn--primary {
-  background-color: var(--color-accent);
+  background-color: var(--color-primary);
   color: #ffffff;
-  border-color: var(--color-accent);
+  border-color: var(--color-primary);
 }
 
 .btn--primary:hover {
-  background-color: var(--color-accent-hover);
-  border-color: var(--color-accent-hover);
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
 }
 
 .btn--primary:active {
-  background-color: var(--color-accent);
+  background-color: var(--color-primary);
 }
 
 /* Secondary Button */
@@ -313,10 +384,10 @@ body {
 
 /* Icon Button */
 .btn--icon {
-  width: var(--button-min-size);
-  height: var(--button-min-size);
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
   padding: var(--spacing-sm);
-  font-size: var(--font-size-xlarge);
+  font-size: var(--font-size-2xl);
   background-color: var(--color-surface);
   border-color: var(--color-border);
   border-radius: 50%;
@@ -380,20 +451,21 @@ body {
 .result-container {
   padding: var(--spacing-xl);
   background-color: var(--color-surface);
-  border-radius: var(--button-border-radius);
+  border-radius: var(--radius-md);
   margin-bottom: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .result-score {
   margin: 0 0 var(--spacing-md);
-  font-size: var(--font-size-xlarge);
+  font-size: var(--font-size-2xl);
   font-weight: bold;
   color: var(--color-text);
 }
 
 .result-message {
   margin: 0;
-  font-size: var(--font-size-large);
+  font-size: var(--font-size-lg);
   color: var(--color-text-secondary);
 }
 
@@ -413,7 +485,7 @@ body {
 
 .settings-legend {
   margin-bottom: var(--spacing-md);
-  font-size: var(--font-size-large);
+  font-size: var(--font-size-lg);
   font-weight: bold;
   color: var(--color-text);
 }
@@ -427,11 +499,11 @@ body {
 .radio-label {
   display: flex;
   align-items: center;
-  min-height: var(--button-min-size);
+  min-height: var(--touch-target-min);
   padding: var(--spacing-sm) var(--spacing-md);
   background-color: var(--color-surface);
   border: 2px solid var(--color-border);
-  border-radius: var(--button-border-radius);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: var(--transition-color);
 }
@@ -441,8 +513,8 @@ body {
 }
 
 .radio-label:has(input:checked) {
-  background-color: var(--color-accent);
-  border-color: var(--color-accent);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
   color: #ffffff;
 }
 
@@ -477,7 +549,7 @@ body {
 
 .help-subtitle {
   margin: 0 0 var(--spacing-sm);
-  font-size: var(--font-size-large);
+  font-size: var(--font-size-lg);
   font-weight: bold;
   color: var(--color-text);
 }
@@ -513,7 +585,7 @@ body {
   border-bottom: 1px solid var(--color-border);
   opacity: 0;
   visibility: hidden;
-  transition: var(--transition-opacity), visibility 0.2s ease-out;
+  transition: var(--transition-opacity), visibility var(--transition-normal) ease-out;
   z-index: 100;
 }
 
@@ -534,32 +606,20 @@ body {
 }
 
 .hud-value {
-  font-size: var(--font-size-large);
+  font-size: var(--font-size-lg);
   font-weight: bold;
   color: var(--color-text);
-}
-
-/* ============================================
-   Accessibility - Reduced Motion
-   ============================================ */
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    transition-duration: 0.01ms !important;
-  }
 }
 
 /* ============================================
    Responsive Design
    ============================================ */
 
-/* Small screens */
+/* Small screens - Mobile (max-width: 480px) */
 @media (max-width: 480px) {
   :root {
-    --spacing-lg: 1rem;
-    --spacing-xl: 1.5rem;
+    --spacing-lg: 16px;
+    --spacing-xl: 24px;
   }
 
   .app-header {
@@ -567,7 +627,7 @@ body {
   }
 
   .app-title {
-    font-size: var(--font-size-large);
+    font-size: var(--font-size-lg);
   }
 
   .main-container {
@@ -579,7 +639,7 @@ body {
   }
 
   .screen-title {
-    font-size: var(--font-size-xlarge);
+    font-size: var(--font-size-2xl);
   }
 
   .radio-group {
@@ -592,14 +652,14 @@ body {
   }
 }
 
-/* Medium screens */
+/* Medium screens - Tablet (481px - 768px) */
 @media (min-width: 481px) and (max-width: 768px) {
   .screen-content {
     max-width: 450px;
   }
 }
 
-/* Large screens */
+/* Large screens - Desktop (769px - 1199px) */
 @media (min-width: 769px) {
   .home-nav,
   .result-nav {
@@ -611,6 +671,17 @@ body {
   .home-nav .btn,
   .result-nav .btn {
     min-width: 200px;
+  }
+}
+
+/* Extra Large screens - Desktop Large (1200px+) */
+@media (min-width: 1200px) {
+  .screen-content {
+    max-width: 700px;
+  }
+
+  .btn {
+    font-size: var(--font-size-xl);
   }
 }
 
@@ -629,7 +700,7 @@ body {
   }
 
   .screen-title {
-    font-size: var(--font-size-large);
+    font-size: var(--font-size-lg);
     margin-bottom: var(--spacing-sm);
   }
 

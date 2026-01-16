@@ -23,8 +23,14 @@ export class GameHUD {
     this.pauseButton = null;
     this.pauseOverlay = null;
 
+    // フォーカストラップ用
+    this._focusableElements = [];
+    this._firstFocusable = null;
+    this._lastFocusable = null;
+
     // キーボードハンドラをバインド
     this._handleKeyDown = this._handleKeyDown.bind(this);
+    this._handleFocusTrap = this._handleFocusTrap.bind(this);
   }
 
   /**
@@ -51,6 +57,7 @@ export class GameHUD {
     this.timeElement = document.createElement('span');
     this.timeElement.className = 'hud-value';
     this.timeElement.setAttribute('aria-label', 'のこりじかん');
+    this.timeElement.setAttribute('aria-live', 'polite');
     this.timeElement.textContent = '0:00';
     timeSection.appendChild(this.timeElement);
 
@@ -61,6 +68,7 @@ export class GameHUD {
     this.pauseButton.className = 'hud-pause-btn';
     this.pauseButton.setAttribute('tabindex', '0');
     this.pauseButton.setAttribute('aria-label', 'いちじていし');
+    this.pauseButton.setAttribute('aria-pressed', 'false');
     this.pauseButton.textContent = '⏸️';
     this.pauseButton.addEventListener('click', () => {
       audio.play('click');
@@ -81,6 +89,7 @@ export class GameHUD {
     this.scoreElement = document.createElement('span');
     this.scoreElement.className = 'hud-value';
     this.scoreElement.setAttribute('aria-label', 'スコア');
+    this.scoreElement.setAttribute('aria-live', 'polite');
     this.scoreElement.textContent = '0';
     scoreSection.appendChild(this.scoreElement);
 
@@ -206,14 +215,14 @@ export class GameHUD {
       }
 
       .hud-label {
-        font-size: 14px;
-        color: #666666;
+        font-size: 16px;
+        color: #555555;
         margin-bottom: 4px;
         font-weight: 500;
       }
 
       .hud-value {
-        font-size: 28px;
+        font-size: clamp(24px, 3vw, 32px);
         font-weight: bold;
         color: #333333;
       }
@@ -255,7 +264,7 @@ export class GameHUD {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.6);
+        background-color: rgba(0, 0, 0, 0.5);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -347,11 +356,11 @@ export class GameHUD {
 
       .pause-hint {
         margin: 24px 0 0 0;
-        font-size: 14px;
-        color: #999999;
+        font-size: 16px;
+        color: #666666;
       }
 
-      /* レスポンシブ */
+      /* レスポンシブ - モバイル */
       @media (max-width: 480px) {
         .game-hud {
           padding: 12px 16px;
@@ -363,7 +372,7 @@ export class GameHUD {
         }
 
         .hud-label {
-          font-size: 12px;
+          font-size: 14px;
         }
 
         .hud-value {
@@ -389,9 +398,94 @@ export class GameHUD {
           font-size: 16px;
         }
       }
+
+      /* レスポンシブ - タブレット */
+      @media (min-width: 768px) and (max-width: 1023px) {
+        .game-hud {
+          padding: 16px 24px;
+        }
+
+        .hud-value {
+          font-size: 28px;
+        }
+      }
+
+      /* レスポンシブ - 大画面 */
+      @media (min-width: 1200px) {
+        .game-hud {
+          padding: 20px 40px;
+        }
+
+        .hud-section {
+          min-width: 160px;
+        }
+
+        .hud-value {
+          font-size: 36px;
+        }
+      }
+
+      /* アクセシビリティ - モーション軽減 */
+      @media (prefers-reduced-motion: reduce) {
+        .game-hud,
+        .hud-button,
+        .pause-dialog {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
     `;
 
     document.head.appendChild(style);
+  }
+
+  /**
+   * フォーカストラップのハンドラ
+   */
+  _handleFocusTrap(event) {
+    if (!this.isPaused || event.key !== 'Tab') return;
+
+    // フォーカス可能な要素を取得
+    this._updateFocusableElements();
+
+    if (this._focusableElements.length === 0) return;
+
+    if (event.shiftKey) {
+      // Shift+Tab: 最初の要素にいる場合、最後の要素へ
+      if (document.activeElement === this._firstFocusable) {
+        event.preventDefault();
+        this._lastFocusable.focus();
+      }
+    } else {
+      // Tab: 最後の要素にいる場合、最初の要素へ
+      if (document.activeElement === this._lastFocusable) {
+        event.preventDefault();
+        this._firstFocusable.focus();
+      }
+    }
+  }
+
+  /**
+   * フォーカス可能な要素を更新
+   */
+  _updateFocusableElements() {
+    if (!this.pauseOverlay) return;
+
+    const focusableSelectors = [
+      'button:not([disabled])',
+      '[href]',
+      'input:not([disabled])',
+      'select:not([disabled])',
+      'textarea:not([disabled])',
+      '[tabindex]:not([tabindex="-1"])'
+    ];
+
+    this._focusableElements = Array.from(
+      this.pauseOverlay.querySelectorAll(focusableSelectors.join(', '))
+    ).filter(el => el.offsetParent !== null);
+
+    this._firstFocusable = this._focusableElements[0];
+    this._lastFocusable = this._focusableElements[this._focusableElements.length - 1];
   }
 
   /**
@@ -411,7 +505,11 @@ export class GameHUD {
   _pause() {
     this.isPaused = true;
     this.pauseOverlay.classList.add('visible');
+    this.pauseButton.setAttribute('aria-pressed', 'true');
     stateMachine.pause();
+
+    // フォーカストラップを有効化
+    document.addEventListener('keydown', this._handleFocusTrap);
 
     // 再開ボタンにフォーカス
     setTimeout(() => {
@@ -428,7 +526,16 @@ export class GameHUD {
   _resume() {
     this.isPaused = false;
     this.pauseOverlay.classList.remove('visible');
+    this.pauseButton.setAttribute('aria-pressed', 'false');
     stateMachine.resume();
+
+    // フォーカストラップを無効化
+    document.removeEventListener('keydown', this._handleFocusTrap);
+
+    // 一時停止ボタンにフォーカスを戻す
+    if (this.pauseButton) {
+      this.pauseButton.focus();
+    }
   }
 
   /**
@@ -437,6 +544,11 @@ export class GameHUD {
   _goHome() {
     this.isPaused = false;
     this.pauseOverlay.classList.remove('visible');
+    this.pauseButton.setAttribute('aria-pressed', 'false');
+
+    // フォーカストラップを無効化
+    document.removeEventListener('keydown', this._handleFocusTrap);
+
     stateMachine.goHome();
   }
 
@@ -554,6 +666,7 @@ export class GameHUD {
 
     // キーボードリスナーを削除
     document.removeEventListener('keydown', this._handleKeyDown);
+    document.removeEventListener('keydown', this._handleFocusTrap);
   }
 
   /**
@@ -571,6 +684,9 @@ export class GameHUD {
     }
     if (this.pauseOverlay) {
       this.pauseOverlay.classList.remove('visible');
+    }
+    if (this.pauseButton) {
+      this.pauseButton.setAttribute('aria-pressed', 'false');
     }
   }
 

@@ -13,6 +13,13 @@ export class ResultScreen {
     this.container = null;
     this.isVisible = false;
     this.resultData = null;
+    this.useSolidBackground = false; // ASD向け単色背景オプション
+
+    // フォーカストラップ用
+    this._focusableElements = [];
+    this._firstFocusable = null;
+    this._lastFocusable = null;
+    this._handleFocusTrap = this._handleFocusTrap.bind(this);
 
     // キーボードハンドラをバインド
     this._handleKeyDown = this._handleKeyDown.bind(this);
@@ -224,6 +231,21 @@ export class ResultScreen {
   }
 
   /**
+   * 単色背景を設定（ASD向けオプション）
+   * @param {boolean} useSolid - 単色背景を使用するかどうか
+   */
+  setSolidBackground(useSolid) {
+    this.useSolidBackground = useSolid;
+    if (this.container) {
+      if (useSolid) {
+        this.container.classList.add('solid-background');
+      } else {
+        this.container.classList.remove('solid-background');
+      }
+    }
+  }
+
+  /**
    * スタイルを適用
    */
   _applyStyles() {
@@ -251,6 +273,11 @@ export class ResultScreen {
         z-index: 300;
       }
 
+      /* ASD向け単色背景オプション */
+      .result-screen.solid-background {
+        background: #F5F5F5;
+      }
+
       .result-screen.visible {
         opacity: 1;
         visibility: visible;
@@ -276,16 +303,16 @@ export class ResultScreen {
       }
 
       .result-title {
-        font-size: 36px;
+        font-size: clamp(28px, 5vw, 40px);
         font-weight: bold;
         margin: 0 0 8px 0;
         color: #333333;
       }
 
       .result-subtitle {
-        font-size: 24px;
+        font-size: clamp(18px, 3vw, 24px);
         margin: 0;
-        color: #666666;
+        color: #555555;
       }
 
       /* スコアバッジ */
@@ -302,7 +329,7 @@ export class ResultScreen {
       }
 
       .score-number {
-        font-size: 48px;
+        font-size: clamp(40px, 8vw, 64px);
         font-weight: bold;
         color: #FFFFFF;
         line-height: 1;
@@ -316,7 +343,7 @@ export class ResultScreen {
 
       /* 励ましメッセージ */
       .result-encouragement {
-        font-size: 24px;
+        font-size: clamp(16px, 2.5vw, 20px);
         color: #5C6BC0;
         margin: 8px 0 24px 0;
         font-weight: bold;
@@ -347,6 +374,7 @@ export class ResultScreen {
 
       .result-btn {
         width: 100%;
+        min-height: 56px;
         font-size: 20px;
         font-weight: bold;
         border: none;
@@ -369,25 +397,59 @@ export class ResultScreen {
       .retry-btn {
         background: #4CAF50;
         color: #FFFFFF;
-        height: 60px;
+        min-height: 60px;
       }
 
       .retry-btn:hover {
         opacity: 0.9;
       }
 
-      /* ホームボタン */
+      /* ホームボタン - コントラスト改善 */
       .home-btn {
         background: #F5F5F5;
-        color: #757575;
-        height: 56px;
+        color: #424242;
+        min-height: 56px;
       }
 
       .home-btn:hover {
         background: #EEEEEE;
       }
 
-      /* レスポンシブ */
+      /* タブレット対応（768px以上でボタン横並び） */
+      @media (min-width: 768px) {
+        .result-buttons {
+          flex-direction: row;
+          justify-content: center;
+        }
+
+        .result-btn {
+          min-width: 180px;
+          width: auto;
+        }
+      }
+
+      /* 大画面対応（1200px以上） */
+      @media (min-width: 1200px) {
+        .result-card {
+          max-width: 600px;
+          padding: 48px;
+        }
+
+        .score-badge {
+          width: 160px;
+          height: 160px;
+        }
+
+        .score-number {
+          font-size: 64px;
+        }
+
+        .score-label {
+          font-size: 22px;
+        }
+      }
+
+      /* レスポンシブ（モバイル） */
       @media (max-width: 480px) {
         .result-screen {
           padding: 16px;
@@ -397,29 +459,13 @@ export class ResultScreen {
           padding: 32px 24px;
         }
 
-        .result-title {
-          font-size: 32px;
-        }
-
-        .result-subtitle {
-          font-size: 20px;
-        }
-
         .score-badge {
           width: 100px;
           height: 100px;
         }
 
-        .score-number {
-          font-size: 40px;
-        }
-
         .score-label {
           font-size: 16px;
-        }
-
-        .result-encouragement {
-          font-size: 20px;
         }
 
         .stat-row {
@@ -429,18 +475,56 @@ export class ResultScreen {
         .result-btn {
           font-size: 18px;
         }
+      }
 
-        .retry-btn {
-          height: 56px;
-        }
-
-        .home-btn {
-          height: 52px;
+      /* prefers-reduced-motion対応 */
+      @media (prefers-reduced-motion: reduce) {
+        .result-screen,
+        .result-card,
+        .result-btn {
+          transition: none !important;
+          animation: none !important;
         }
       }
     `;
 
     document.head.appendChild(style);
+  }
+
+  /**
+   * フォーカストラップのハンドラ
+   */
+  _handleFocusTrap(e) {
+    if (e.key !== 'Tab') return;
+
+    if (!this._firstFocusable || !this._lastFocusable) return;
+
+    if (e.shiftKey) {
+      if (document.activeElement === this._firstFocusable) {
+        e.preventDefault();
+        this._lastFocusable.focus();
+      }
+    } else {
+      if (document.activeElement === this._lastFocusable) {
+        e.preventDefault();
+        this._firstFocusable.focus();
+      }
+    }
+  }
+
+  /**
+   * フォーカス可能な要素を更新
+   */
+  _updateFocusableElements() {
+    if (!this.container) return;
+
+    const focusableSelectors = 'button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    this._focusableElements = Array.from(this.container.querySelectorAll(focusableSelectors));
+
+    if (this._focusableElements.length > 0) {
+      this._firstFocusable = this._focusableElements[0];
+      this._lastFocusable = this._focusableElements[this._focusableElements.length - 1];
+    }
   }
 
   /**
@@ -525,6 +609,11 @@ export class ResultScreen {
       this.setResult(data);
     }
 
+    // 単色背景の設定を反映
+    if (this.useSolidBackground) {
+      this.container.classList.add('solid-background');
+    }
+
     // 結果コンテンツを更新
     this._updateResultContent();
 
@@ -533,6 +622,10 @@ export class ResultScreen {
 
     // キーボードリスナーを追加
     document.addEventListener('keydown', this._handleKeyDown);
+
+    // フォーカストラップを有効化
+    this._updateFocusableElements();
+    document.addEventListener('keydown', this._handleFocusTrap);
 
     // リトライボタンにフォーカス
     setTimeout(() => {
@@ -558,6 +651,9 @@ export class ResultScreen {
 
     // キーボードリスナーを削除
     document.removeEventListener('keydown', this._handleKeyDown);
+
+    // フォーカストラップを無効化
+    document.removeEventListener('keydown', this._handleFocusTrap);
   }
 
   /**
