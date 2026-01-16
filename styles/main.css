@@ -1,0 +1,670 @@
+/* ============================================
+   CSS Variables - Theme Management
+   ============================================ */
+
+:root {
+  /* Base Colors */
+  --color-background: #ffffff;
+  --color-text: #333333;
+  --color-text-secondary: #666666;
+  --color-accent: #4a90d9;
+  --color-accent-hover: #3a7bc8;
+  --color-border: #cccccc;
+  --color-surface: #f5f5f5;
+
+  /* Font Sizes */
+  --font-size-base: 1rem;
+  --font-size-large: 1.25rem;
+  --font-size-xlarge: 1.5rem;
+  --font-size-title: 2rem;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Button */
+  --button-min-size: 48px;
+  --button-padding: 0.75rem 1.5rem;
+  --button-border-radius: 8px;
+
+  /* Transitions - Gentle, not jarring */
+  --transition-opacity: opacity 0.2s ease-out;
+  --transition-color: color 0.15s ease-out, background-color 0.15s ease-out;
+
+  /* Focus */
+  --focus-outline-width: 3px;
+  --focus-outline-offset: 2px;
+  --focus-outline-color: var(--color-accent);
+}
+
+/* ============================================
+   Theme Variations (data-theme attribute)
+   ============================================ */
+
+/* White Theme (Default) */
+[data-theme="white"] {
+  --color-background: #ffffff;
+  --color-text: #333333;
+  --color-text-secondary: #666666;
+  --color-surface: #f5f5f5;
+  --color-border: #cccccc;
+}
+
+/* Cream Theme */
+[data-theme="cream"] {
+  --color-background: #fdf6e3;
+  --color-text: #3d3d3d;
+  --color-text-secondary: #5a5a5a;
+  --color-surface: #f5eedc;
+  --color-border: #d4c9a8;
+}
+
+/* Gray Theme */
+[data-theme="gray"] {
+  --color-background: #e8e8e8;
+  --color-text: #2d2d2d;
+  --color-text-secondary: #505050;
+  --color-surface: #d8d8d8;
+  --color-border: #b0b0b0;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --color-background: #1e1e1e;
+  --color-text: #e0e0e0;
+  --color-text-secondary: #b0b0b0;
+  --color-accent: #6ab0f3;
+  --color-accent-hover: #8ac4f7;
+  --color-surface: #2d2d2d;
+  --color-border: #444444;
+}
+
+/* ============================================
+   Contrast Settings (data-contrast attribute)
+   ============================================ */
+
+/* Low Contrast */
+[data-contrast="low"] {
+  --color-text: #555555;
+  --color-text-secondary: #777777;
+}
+
+[data-theme="dark"][data-contrast="low"] {
+  --color-text: #c0c0c0;
+  --color-text-secondary: #909090;
+}
+
+/* Medium Contrast (Default) - inherits from theme */
+
+/* High Contrast */
+[data-contrast="high"] {
+  --color-text: #000000;
+  --color-text-secondary: #333333;
+  --color-border: #000000;
+}
+
+[data-theme="dark"][data-contrast="high"] {
+  --color-text: #ffffff;
+  --color-text-secondary: #e0e0e0;
+  --color-border: #ffffff;
+}
+
+/* ============================================
+   Font Size Settings (data-font-size attribute)
+   ============================================ */
+
+[data-font-size="medium"] {
+  --font-size-base: 1rem;
+  --font-size-large: 1.25rem;
+  --font-size-xlarge: 1.5rem;
+  --font-size-title: 2rem;
+}
+
+[data-font-size="large"] {
+  --font-size-base: 1.25rem;
+  --font-size-large: 1.5rem;
+  --font-size-xlarge: 1.75rem;
+  --font-size-title: 2.5rem;
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  color: var(--color-text);
+  background-color: var(--color-background);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ============================================
+   App Container
+   ============================================ */
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ============================================
+   Header
+   ============================================ */
+
+.app-header {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.app-title {
+  margin: 0;
+  font-size: var(--font-size-xlarge);
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+/* ============================================
+   Main Container
+   ============================================ */
+
+.main-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+}
+
+/* ============================================
+   Screen System
+   ============================================ */
+
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition-opacity), visibility 0.2s ease-out;
+}
+
+.screen--active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.screen-content {
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.screen-title {
+  margin: 0 0 var(--spacing-lg);
+  font-size: var(--font-size-title);
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+.screen-description {
+  margin: 0 0 var(--spacing-xl);
+  font-size: var(--font-size-large);
+  color: var(--color-text-secondary);
+}
+
+/* ============================================
+   Button Styles
+   ============================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--button-min-size);
+  min-height: var(--button-min-size);
+  padding: var(--button-padding);
+  font-family: inherit;
+  font-size: var(--font-size-large);
+  font-weight: bold;
+  text-decoration: none;
+  border: 2px solid transparent;
+  border-radius: var(--button-border-radius);
+  cursor: pointer;
+  transition: var(--transition-color);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Focus styles - Always visible, accessible */
+.btn:focus {
+  outline: var(--focus-outline-width) solid var(--focus-outline-color);
+  outline-offset: var(--focus-outline-offset);
+}
+
+.btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.btn:focus-visible {
+  outline: var(--focus-outline-width) solid var(--focus-outline-color);
+  outline-offset: var(--focus-outline-offset);
+}
+
+/* Primary Button */
+.btn--primary {
+  background-color: var(--color-accent);
+  color: #ffffff;
+  border-color: var(--color-accent);
+}
+
+.btn--primary:hover {
+  background-color: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.btn--primary:active {
+  background-color: var(--color-accent);
+}
+
+/* Secondary Button */
+.btn--secondary {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.btn--secondary:hover {
+  background-color: var(--color-border);
+}
+
+.btn--secondary:active {
+  background-color: var(--color-surface);
+}
+
+/* Icon Button */
+.btn--icon {
+  width: var(--button-min-size);
+  height: var(--button-min-size);
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-xlarge);
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+  border-radius: 50%;
+}
+
+.btn--icon:hover {
+  background-color: var(--color-border);
+}
+
+/* ============================================
+   Navigation
+   ============================================ */
+
+.home-nav,
+.result-nav,
+.settings-nav,
+.help-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+}
+
+/* ============================================
+   Canvas Container
+   ============================================ */
+
+.canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-background);
+}
+
+#game-canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  touch-action: none;
+}
+
+/* Game Controls */
+.game-controls {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  display: flex;
+  gap: var(--spacing-sm);
+  z-index: 10;
+}
+
+/* ============================================
+   Result Screen
+   ============================================ */
+
+.result-container {
+  padding: var(--spacing-xl);
+  background-color: var(--color-surface);
+  border-radius: var(--button-border-radius);
+  margin-bottom: var(--spacing-lg);
+}
+
+.result-score {
+  margin: 0 0 var(--spacing-md);
+  font-size: var(--font-size-xlarge);
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+.result-message {
+  margin: 0;
+  font-size: var(--font-size-large);
+  color: var(--color-text-secondary);
+}
+
+/* ============================================
+   Settings Screen
+   ============================================ */
+
+.settings-form {
+  text-align: left;
+}
+
+.settings-group {
+  margin: 0 0 var(--spacing-xl);
+  padding: 0;
+  border: none;
+}
+
+.settings-legend {
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-large);
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  min-height: var(--button-min-size);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--button-border-radius);
+  cursor: pointer;
+  transition: var(--transition-color);
+}
+
+.radio-label:hover {
+  background-color: var(--color-border);
+}
+
+.radio-label:has(input:checked) {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #ffffff;
+}
+
+.radio-label:has(input:focus-visible) {
+  outline: var(--focus-outline-width) solid var(--focus-outline-color);
+  outline-offset: var(--focus-outline-offset);
+}
+
+.radio-label input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.radio-text {
+  font-size: var(--font-size-base);
+  font-weight: bold;
+}
+
+/* ============================================
+   Help Screen
+   ============================================ */
+
+.help-content {
+  text-align: left;
+  margin-bottom: var(--spacing-xl);
+}
+
+.help-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.help-subtitle {
+  margin: 0 0 var(--spacing-sm);
+  font-size: var(--font-size-large);
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+.help-text {
+  margin: 0;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+}
+
+.help-list {
+  margin: 0;
+  padding-left: var(--spacing-lg);
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: 2;
+}
+
+/* ============================================
+   HUD (Heads-Up Display)
+   ============================================ */
+
+.hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition-opacity), visibility 0.2s ease-out;
+  z-index: 100;
+}
+
+.hud--visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.hud-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.hud-label {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.hud-value {
+  font-size: var(--font-size-large);
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+/* ============================================
+   Accessibility - Reduced Motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+
+/* Small screens */
+@media (max-width: 480px) {
+  :root {
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.5rem;
+  }
+
+  .app-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .app-title {
+    font-size: var(--font-size-large);
+  }
+
+  .main-container {
+    padding: var(--spacing-md);
+  }
+
+  .screen {
+    padding: var(--spacing-md);
+  }
+
+  .screen-title {
+    font-size: var(--font-size-xlarge);
+  }
+
+  .radio-group {
+    flex-direction: column;
+  }
+
+  .radio-label {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Medium screens */
+@media (min-width: 481px) and (max-width: 768px) {
+  .screen-content {
+    max-width: 450px;
+  }
+}
+
+/* Large screens */
+@media (min-width: 769px) {
+  .home-nav,
+  .result-nav {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .home-nav .btn,
+  .result-nav .btn {
+    min-width: 200px;
+  }
+}
+
+/* Landscape orientation on small devices */
+@media (max-height: 500px) and (orientation: landscape) {
+  .app-header {
+    padding: var(--spacing-xs) var(--spacing-md);
+  }
+
+  .app-title {
+    font-size: var(--font-size-base);
+  }
+
+  .main-container {
+    padding: var(--spacing-sm);
+  }
+
+  .screen-title {
+    font-size: var(--font-size-large);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .screen-description {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .home-nav,
+  .result-nav,
+  .settings-nav,
+  .help-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: var(--spacing-md);
+  }
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+
+@media print {
+  .app-header,
+  .hud,
+  .game-controls,
+  .btn {
+    display: none;
+  }
+}
+
+/* ============================================
+   IMPORTANT: No Flash/Blink Animations
+   This section intentionally contains NO
+   @keyframes with opacity flashing or
+   visibility toggling to prevent triggering
+   photosensitive reactions.
+   ============================================ */
