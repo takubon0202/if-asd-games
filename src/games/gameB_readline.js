@@ -229,6 +229,7 @@ export class GameB_Readline {
     this.elapsedTime = 0;
     this.isRunning = false;
     this.isCompleted = false;
+    this.isFinished = false;
 
     // メッセージ表示
     this.message = null;
@@ -537,12 +538,22 @@ export class GameB_Readline {
   handleInput(event) {
     if (!this.isRunning) return;
 
-    // 完了後のタップは結果画面へ
+    // 完了後はisFinishedフラグで処理（main.jsで検知）
     if (this.isCompleted) {
-      return { action: 'showResult', result: this.getResult() };
+      this.isFinished = true;
+      return;
     }
 
-    const { position } = event;
+    // main.jsからのイベント形式に対応
+    // pointerDown または click でターゲット選択
+    const isClickEvent =
+      event.action === 'pointerDown' ||
+      event.type === 'click' ||
+      event.type === 'touchstart';
+
+    if (!isClickEvent) return;
+
+    const position = event.position;
     if (!position) return;
 
     // ターゲットクリック判定

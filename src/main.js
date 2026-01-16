@@ -206,31 +206,54 @@ class App {
       getLogicalPosition: (e) => this.canvasScaling.getLogicalPosition(e)
     });
 
+    // すべての入力イベントをhandleInputに統一
     // アクションイベント（Space, クリック, タップ）
     this.inputRouter.on('action', (event) => {
-      if (this.currentGame && typeof this.currentGame.onAction === 'function') {
-        this.currentGame.onAction(event);
+      if (this.currentGame && typeof this.currentGame.handleInput === 'function') {
+        this.currentGame.handleInput({
+          type: event.type || 'action',
+          action: 'action',
+          key: event.key || ' ',
+          code: event.code || 'Space',
+          position: event.position || null,
+          timestamp: Date.now()
+        });
+      }
+    });
+
+    // ポインター押下（クリック/タップ）
+    this.inputRouter.on('pointerDown', (event) => {
+      if (this.currentGame && typeof this.currentGame.handleInput === 'function') {
+        this.currentGame.handleInput({
+          type: 'click',
+          action: 'pointerDown',
+          position: event.position || { x: 0, y: 0 },
+          timestamp: Date.now()
+        });
       }
     });
 
     // ポインター移動
     this.inputRouter.on('pointer', (event) => {
-      if (this.currentGame && typeof this.currentGame.onPointerMove === 'function') {
-        this.currentGame.onPointerMove(event);
-      }
-    });
-
-    // ポインター押下
-    this.inputRouter.on('pointerDown', (event) => {
-      if (this.currentGame && typeof this.currentGame.onPointerDown === 'function') {
-        this.currentGame.onPointerDown(event);
+      if (this.currentGame && typeof this.currentGame.handleInput === 'function') {
+        this.currentGame.handleInput({
+          type: 'pointermove',
+          action: 'pointer',
+          position: event.position || { x: 0, y: 0 },
+          timestamp: Date.now()
+        });
       }
     });
 
     // ポインター解放
     this.inputRouter.on('pointerUp', (event) => {
-      if (this.currentGame && typeof this.currentGame.onPointerUp === 'function') {
-        this.currentGame.onPointerUp(event);
+      if (this.currentGame && typeof this.currentGame.handleInput === 'function') {
+        this.currentGame.handleInput({
+          type: 'pointerup',
+          action: 'pointerUp',
+          position: event.position || { x: 0, y: 0 },
+          timestamp: Date.now()
+        });
       }
     });
 
@@ -373,24 +396,24 @@ class App {
       // 設定を取得
       const settings = storage.getSettings();
 
-      // ゲームインスタンスを作成
-      this.currentGame = new GameClass({
-        canvas: this.canvas,
-        ctx: this.ctx,
-        canvasScaling: this.canvasScaling,
-        settings: settings,
-        onComplete: (result) => this._onGameComplete(result),
-        onScoreUpdate: (score) => gameHUD.updateScore(score),
-        onTimeUpdate: (time) => gameHUD.updateTime(time)
-      });
+      // ゲームインスタンスを作成（位置指定引数で渡す）
+      this.currentGame = new GameClass(this.canvas, this.ctx, settings);
 
       // ゲームを初期化
       if (typeof this.currentGame.init === 'function') {
         await this.currentGame.init();
       }
 
+      // ゲームを開始
+      if (typeof this.currentGame.start === 'function') {
+        this.currentGame.start();
+      }
+
       // ゲームループを開始
       this.gameLoop.start();
+
+      // HUDを初期化
+      gameHUD.reset();
 
       // 開始音を再生
       audio.play('start');
@@ -440,8 +463,25 @@ class App {
   _update(deltaTime) {
     if (!stateMachine.is(GameState.PLAYING)) return;
 
-    if (this.currentGame && typeof this.currentGame.update === 'function') {
-      this.currentGame.update(deltaTime);
+    if (this.currentGame) {
+      // ゲームを更新
+      if (typeof this.currentGame.update === 'function') {
+        this.currentGame.update(deltaTime);
+      }
+
+      // HUDを更新（スコアと時間）
+      if (this.currentGame.score !== undefined) {
+        gameHUD.updateScore(this.currentGame.score);
+      }
+      if (this.currentGame.elapsedTime !== undefined) {
+        const remaining = (this.currentGame.timeLimit || 60) - this.currentGame.elapsedTime;
+        gameHUD.updateTime(Math.max(0, Math.ceil(remaining)));
+      }
+
+      // ゲーム完了をチェック
+      if (this.currentGame.isFinished || this.currentGame.finished) {
+        this._onGameComplete(this.currentGame.getResult ? this.currentGame.getResult() : {});
+      }
     }
   }
 

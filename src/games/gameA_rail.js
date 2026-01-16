@@ -224,13 +224,16 @@ export class GameA_Rail {
       return;
     }
 
-    // スペースキーまたはクリック/タップで判定
-    const isValidInput =
-      event.type === 'keydown' && event.key === ' ' ||
+    // main.jsからのイベント形式に対応
+    // action: 'action' または 'pointerDown' でアクション判定
+    const isActionEvent =
+      event.action === 'action' ||
+      event.action === 'pointerDown' ||
       event.type === 'click' ||
-      event.type === 'touchstart';
+      event.type === 'touchstart' ||
+      (event.type === 'keydown' && event.key === ' ');
 
-    if (isValidInput) {
+    if (isActionEvent) {
       this._checkMiddleZone();
     }
   }

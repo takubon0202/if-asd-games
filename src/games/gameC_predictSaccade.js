@@ -71,6 +71,7 @@ export class GameC_PredictSaccade {
     // ゲーム状態
     this.phase = GamePhase.READY;
     this.isPaused = false;
+    this.isFinished = false;
     this.currentRound = 0;
 
     // 位置管理
@@ -305,6 +306,7 @@ export class GameC_PredictSaccade {
     if (this.positionIndex >= this.positionSequence.length) {
       // ゲーム終了
       this.phase = GamePhase.COMPLETE;
+      this.isFinished = true;
     } else {
       // 次のラウンド開始
       this._startPreviewPhase();
@@ -570,10 +572,16 @@ export class GameC_PredictSaccade {
       return;
     }
 
-    // アクション入力（クリック、Space、Enter）
-    if (event.type === 'action' ||
-        (event.type === 'keyDown' && (event.code === 'Space' || event.code === 'Enter'))) {
+    // main.jsからのイベント形式に対応
+    // action: 'action' または 'pointerDown' でアクション判定
+    const isActionEvent =
+      event.action === 'action' ||
+      event.action === 'pointerDown' ||
+      event.type === 'click' ||
+      event.type === 'touchstart' ||
+      (event.code === 'Space' || event.code === 'Enter');
 
+    if (isActionEvent) {
       if (this.phase === GamePhase.ACTIVE) {
         // 本表示中に反応
         const responseTime = performance.now() - this.responseStartTime;

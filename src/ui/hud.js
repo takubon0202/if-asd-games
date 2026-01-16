@@ -514,6 +514,24 @@ export class GameHUD {
   }
 
   /**
+   * HUDの値をリセット
+   */
+  reset() {
+    this.time = 0;
+    this.score = 0;
+    this.isPaused = false;
+    if (this.timeElement) {
+      this.updateTime(0);
+    }
+    if (this.scoreElement) {
+      this.updateScore(0);
+    }
+    if (this.pauseOverlay) {
+      this.pauseOverlay.classList.remove('visible');
+    }
+  }
+
+  /**
    * 表示状態を取得
    */
   isShown() {
