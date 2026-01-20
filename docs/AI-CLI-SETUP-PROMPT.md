@@ -155,9 +155,9 @@ Gemini CLIのデフォルトモデルを以下に変更してください：
 ```
 以下のAI CLIの動作確認を行ってください：
 
-1. Codex CLI
+1. Codex CLI（非対話モード）
    - codex --version
-   - codex "1+1は？"
+   - codex exec "1+1は？"
 
 2. Gemini CLI
    - gemini --version
@@ -245,7 +245,7 @@ const CONFIG = {
 ### 使用例
 
 ```bash
-# Codex（自動承認がデフォルト）
+# Codex（非対話モード - Claude Code連携用）
 codex exec "タスク内容"
 
 # Gemini（ヘルパー経由で自動承認）
@@ -254,6 +254,9 @@ node scripts/gemini-helper.js "タスク内容"
 # Gemini（直接コマンドで明示的にyolo）
 gemini --yolo "タスク内容"
 ```
+
+> **注意**: Codex CLIは `codex exec` コマンドで非対話モードを使用します。
+> 通常の `codex "..."` は対話モードとなり、入力待ちが発生するためClaude Code連携には適しません。
 
 ---
 

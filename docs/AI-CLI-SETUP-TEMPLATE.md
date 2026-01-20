@@ -202,24 +202,31 @@ OpenAI Codex CLIを使用してコード生成・エラー解決を行います�
 
 ## 実行されるコマンド
 
-$ARGUMENTS を受け取り、Codex CLIを実行します：
+$ARGUMENTS を受け取り、Codex CLIを**非対話モード**で実行します：
 
 \`\`\`bash
-codex "$ARGUMENTS"
+codex exec "$ARGUMENTS"
 \`\`\`
+
+> **非対話モード（`codex exec`）を使用する理由:**
+> - Claude Codeからの自動呼び出しに最適（対話入力が不要）
+> - 結果を出力して終了するので、バックグラウンド実行に適している
+> - 入力待ちでハングアップしない
 
 ## コマンド例
 
 \`\`\`bash
-# 一般的なタスク
-codex "配列をシャッフルする関数を作成"
+# 非対話モード（推奨 - Claude Code連携用）
+codex exec "配列をシャッフルする関数を作成"
+codex exec "このエラーを修正: TypeError: Cannot read property"
 
-# 対話モード
-codex
-
-# ヘルパースクリプト
+# ヘルパースクリプト経由（非対話モード）
+node scripts/codex-helper.js "タスク内容"
 node scripts/codex-helper.js --error "エラーメッセージ"
 node scripts/codex-helper.js --file path/to/file.js "修正内容"
+
+# 対話モード（手動実行時のみ）
+codex
 \`\`\`
 
 ## 自動発動条件
@@ -415,8 +422,9 @@ function runCodexInteractive() {
 }
 
 function runCodexWithPrompt(prompt) {
-  console.log('Codex CLI を実行中...\n');
-  const codex = spawn('codex', [prompt], { stdio: 'inherit', shell: true, cwd: process.cwd() });
+  console.log('Codex CLI を非対話モードで実行中...\n');
+  // 非対話モード（codex exec）を使用 - Claude Code連携に最適
+  const codex = spawn('codex', ['exec', prompt], { stdio: 'inherit', shell: true, cwd: process.cwd() });
   codex.on('close', (code) => {
     if (code !== 0) console.error(`\nCodex CLI がエラーで終了しました (code: ${code})`);
   });
@@ -919,8 +927,8 @@ mkdir -p scripts
 ### 4. 動作確認
 
 ```bash
-# Codex CLI
-codex "Hello World"
+# Codex CLI（非対話モード）
+codex exec "Hello World"
 
 # Gemini CLI（Gemini 3系を使用）
 gemini -m gemini-3-pro-preview "Hello World"
@@ -931,6 +939,10 @@ node scripts/codex-helper.js "テスト"
 node scripts/gemini-helper.js "テスト"
 node scripts/gemini-helper.js --fast "テスト"
 ```
+
+> **Codex CLI モード:**
+> - `codex exec "..."` - 非対話モード（推奨 - Claude Code連携用）
+> - `codex` - 対話モード（手動実行時のみ）
 
 ---
 

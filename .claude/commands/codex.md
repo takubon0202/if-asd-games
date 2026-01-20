@@ -13,25 +13,30 @@ OpenAI Codex CLIを使用してコード生成・エラー解決を行います�
 
 ## 実行されるコマンド
 
-$ARGUMENTS を受け取り、Codex CLIを実行します：
+$ARGUMENTS を受け取り、Codex CLIを**非対話モード**で実行します：
 
 ```bash
-codex "$ARGUMENTS"
+codex exec "$ARGUMENTS"
 ```
+
+> **非対話モード（`codex exec`）を使用する理由:**
+> - Claude Codeからの自動呼び出しに最適（対話入力が不要）
+> - 結果を出力して終了するので、バックグラウンド実行に適している
+> - 入力待ちでハングアップしない
 
 ## コマンド例
 
 ```bash
-# 一般的なタスク
-codex "配列をシャッフルする関数を作成"
+# 非対話モード（推奨 - Claude Code連携用）
+codex exec "配列をシャッフルする関数を作成"
+codex exec "このエラーを修正: TypeError: Cannot read property 'x'"
 
-# エラー解決
-node scripts/codex-helper.js --error "TypeError: Cannot read property 'x'"
-
-# ファイル修正
+# ヘルパースクリプト経由（非対話モード）
+node scripts/codex-helper.js "タスク内容"
+node scripts/codex-helper.js --error "エラーメッセージ"
 node scripts/codex-helper.js --file src/games/gameA_rail.js "最適化"
 
-# 対話モード
+# 対話モード（手動実行時のみ）
 codex
 ```
 

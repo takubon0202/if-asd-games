@@ -5,11 +5,15 @@
  * ChatGPT Plusサブスクリプションに含まれるCodex CLIを使用します。
  * Claude CodeがMaxサブスクで動くのと同じ仕組みです。
  *
+ * **非対話モード（codex exec）をデフォルトで使用**
+ * - Claude Codeからの自動呼び出しに最適
+ * - 結果を出力して終了するので、バックグラウンド実行に適している
+ *
  * 使用方法:
- *   node scripts/codex-helper.js "タスク内容"
- *   node scripts/codex-helper.js --error "エラーメッセージ"
- *   node scripts/codex-helper.js --file path/to/file.js "修正内容"
- *   node scripts/codex-helper.js --interactive  # 対話モード
+ *   node scripts/codex-helper.js "タスク内容"         # 非対話モード（推奨）
+ *   node scripts/codex-helper.js --error "エラー"     # エラー解決
+ *   node scripts/codex-helper.js --file X.js "修正"   # ファイル修正
+ *   node scripts/codex-helper.js --interactive        # 対話モード
  */
 
 const fs = require('fs');
@@ -115,13 +119,19 @@ function runCodexInteractive() {
 }
 
 /**
- * Codex CLIを実行（プロンプト指定）
+ * Codex CLIを実行（非対話モード - codex exec）
+ *
+ * 非対話モードを使用する理由:
+ * - Claude Codeからの自動呼び出しに最適（対話入力が不要）
+ * - 結果を出力して終了するので、バックグラウンド実行に適している
+ * - 入力待ちでハングアップしない
  */
 function runCodexWithPrompt(prompt) {
-  console.log('Codex CLI を実行中...\n');
+  console.log('Codex CLI を非対話モードで実行中...');
+  console.log('コマンド: codex exec "..."\n');
 
-  // Codexにプロンプトを渡して実行
-  const codex = spawn('codex', [prompt], {
+  // 非対話モード（codex exec）を使用
+  const codex = spawn('codex', ['exec', prompt], {
     stdio: 'inherit',
     shell: true,
     cwd: process.cwd()
@@ -164,16 +174,22 @@ async function main() {
     console.log('Codex Helper - OpenAI Codex CLI連携');
     console.log('');
     console.log('ChatGPT Plusサブスクリプションに含まれるCodex CLIを使用します。');
+    console.log('**非対話モード（codex exec）をデフォルトで使用**');
     console.log('');
     console.log('使用方法:');
-    console.log('  node scripts/codex-helper.js "タスク内容"');
-    console.log('  node scripts/codex-helper.js --error "エラーメッセージ"');
-    console.log('  node scripts/codex-helper.js --file path/to/file.js "修正内容"');
-    console.log('  node scripts/codex-helper.js --interactive  # 対話モード');
+    console.log('  node scripts/codex-helper.js "タスク内容"         # 非対話モード（推奨）');
+    console.log('  node scripts/codex-helper.js --error "エラー"     # エラー解決');
+    console.log('  node scripts/codex-helper.js --file X.js "修正"   # ファイル修正');
+    console.log('  node scripts/codex-helper.js --interactive        # 対話モード');
     console.log('');
     console.log('または直接Codex CLIを使用:');
-    console.log('  codex "タスク内容"');
-    console.log('  codex              # 対話モード');
+    console.log('  codex exec "タスク内容"   # 非対話モード（推奨 - Claude Code連携用）');
+    console.log('  codex                     # 対話モード（手動実行時のみ）');
+    console.log('');
+    console.log('非対話モード（codex exec）の利点:');
+    console.log('  - Claude Codeからの自動呼び出しに最適');
+    console.log('  - 結果を出力して終了（入力待ちなし）');
+    console.log('  - バックグラウンド実行に適している');
     console.log('');
     console.log('セットアップ:');
     console.log('  npm install -g @openai/codex');
