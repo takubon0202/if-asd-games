@@ -9,20 +9,21 @@ import { stateMachine, GameState } from '../engine/state.js';
 import { theme } from '../engine/theme.js';
 import { audio } from '../engine/audio.js';
 
-// カラーパレット
+// カラーパレット（Figmaテンプレートから抽出した色を追加）
 const COLORS = {
   // 背景色
   background: '#FAFAFA',
   surface: '#FFFFFF',
 
-  // ゲームカード背景（ソフトパステル）
-  gameA: { bg: '#E3F2FD', hover: '#BBDEFB', border: '#90CAF9', text: '#1565C0' },  // 水色
-  gameB: { bg: '#E8F5E9', hover: '#C8E6C9', border: '#A5D6A7', text: '#2E7D32' },  // 緑
+  // ゲームカード背景（Figma由来のパステル + オリジナル）
+  gameA: { bg: '#E8F5E9', hover: '#C8E6C9', border: '#4ECB71', text: '#537250' },  // Figma緑
+  gameB: { bg: '#F3E5F5', hover: '#E1BEE7', border: '#D99BFF', text: '#73627F' },  // Figma紫
   gameC: { bg: '#FFF3E0', hover: '#FFE0B2', border: '#FFCC80', text: '#E65100' },  // オレンジ
 
   // アクセント
-  primary: '#5C6BC0',      // インディゴ（落ち着いた青紫）
-  primaryHover: '#3F51B5',
+  primary: '#4ECB71',      // Figma緑（明るく元気な色）
+  primaryHover: '#3DA85B',
+  accent: '#D99BFF',       // Figma紫（アクセント）
 
   // テキスト
   text: '#37474F',         // ダークグレー（柔らかい黒）
@@ -32,14 +33,14 @@ const COLORS = {
   footer: '#F5F5F5',
 };
 
-// ゲーム情報
+// ゲーム情報（ASD/LD向け：絵文字を廃止しシンプルなテキストアイコンに変更）
 const GAMES = [
   {
     id: 'gameA',
     name: 'ゲーム A',
     title: 'おいかけっこ',
     description: 'うごく まるを めで おいかける',
-    icon: '👀',
+    icon: 'A',
     colors: COLORS.gameA
   },
   {
@@ -47,7 +48,7 @@ const GAMES = [
     name: 'ゲーム B',
     title: 'みつけよう',
     description: 'かくれた しるしを さがす',
-    icon: '🔍',
+    icon: 'B',
     colors: COLORS.gameB
   },
   {
@@ -55,7 +56,7 @@ const GAMES = [
     name: 'ゲーム C',
     title: 'じゅんばん',
     description: 'すうじを じゅんばんに おす',
-    icon: '🔢',
+    icon: 'C',
     colors: COLORS.gameC
   }
 ];
@@ -65,6 +66,9 @@ export class HomeScreen {
     this.container = null;
     this.isVisible = false;
     this.focusedIndex = 0;
+
+    // イベントリスナー登録状態（多重登録防止）
+    this._keyListenerAttached = false;
 
     // キーボードハンドラをバインド
     this._handleKeyDown = this._handleKeyDown.bind(this);
@@ -244,7 +248,7 @@ export class HomeScreen {
     const notice = document.createElement('p');
     notice.className = 'notice-text';
     notice.setAttribute('aria-live', 'polite');
-    notice.textContent = 'つかれたら やすんでね 😊';
+    notice.textContent = 'つかれたら やすんでね';
     footer.appendChild(notice);
 
     return footer;
@@ -657,8 +661,11 @@ export class HomeScreen {
     this.container.classList.add('visible');
     this.isVisible = true;
 
-    // キーボードリスナーを追加
-    document.addEventListener('keydown', this._handleKeyDown);
+    // キーボードリスナーを追加（多重登録防止）
+    if (!this._keyListenerAttached) {
+      document.addEventListener('keydown', this._handleKeyDown);
+      this._keyListenerAttached = true;
+    }
 
     // 最初のカードにフォーカス
     setTimeout(() => {
@@ -679,7 +686,10 @@ export class HomeScreen {
     this.isVisible = false;
 
     // キーボードリスナーを削除
-    document.removeEventListener('keydown', this._handleKeyDown);
+    if (this._keyListenerAttached) {
+      document.removeEventListener('keydown', this._handleKeyDown);
+      this._keyListenerAttached = false;
+    }
   }
 
   /**

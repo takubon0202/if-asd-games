@@ -28,6 +28,9 @@ export class GameHUD {
     this._firstFocusable = null;
     this._lastFocusable = null;
 
+    // イベントリスナー登録状態（多重登録防止）
+    this._keyListenerAttached = false;
+
     // キーボードハンドラをバインド
     this._handleKeyDown = this._handleKeyDown.bind(this);
     this._handleFocusTrap = this._handleFocusTrap.bind(this);
@@ -50,7 +53,7 @@ export class GameHUD {
 
     const timeLabel = document.createElement('span');
     timeLabel.className = 'hud-label';
-    timeLabel.textContent = '⏱️ じかん';
+    timeLabel.textContent = 'じかん';
     timeLabel.setAttribute('aria-hidden', 'true');
     timeSection.appendChild(timeLabel);
 
@@ -69,7 +72,7 @@ export class GameHUD {
     this.pauseButton.setAttribute('tabindex', '0');
     this.pauseButton.setAttribute('aria-label', 'いちじていし');
     this.pauseButton.setAttribute('aria-pressed', 'false');
-    this.pauseButton.textContent = '⏸️';
+    this.pauseButton.textContent = 'II';
     this.pauseButton.addEventListener('click', () => {
       audio.play('click');
       this._togglePause();
@@ -82,7 +85,7 @@ export class GameHUD {
 
     const scoreLabel = document.createElement('span');
     scoreLabel.className = 'hud-label';
-    scoreLabel.textContent = '⭐ スコア';
+    scoreLabel.textContent = 'スコア';
     scoreLabel.setAttribute('aria-hidden', 'true');
     scoreSection.appendChild(scoreLabel);
 
@@ -120,7 +123,7 @@ export class GameHUD {
 
     const title = document.createElement('h2');
     title.className = 'pause-title';
-    title.textContent = 'いちじていし ⏸️';
+    title.textContent = 'いちじていし';
     content.appendChild(title);
 
     const buttons = document.createElement('div');
@@ -182,7 +185,7 @@ export class GameHUD {
         padding: 16px 24px;
         background-color: rgba(255, 255, 255, 0.95);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+        font-family: var(--font-family, 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif);
         opacity: 0;
         visibility: hidden;
         transition: opacity 0.2s ease-out;
@@ -554,12 +557,17 @@ export class GameHUD {
 
   /**
    * 時間を更新
+   * 秒単位で変化がない場合はDOM更新をスキップ（パフォーマンス最適化）
    */
   updateTime(seconds) {
-    this.time = seconds;
+    const flooredSeconds = Math.floor(seconds);
+    // 秒が変わっていなければ早期リターン（不要なDOM更新を防止）
+    if (this.time === flooredSeconds) return;
+
+    this.time = flooredSeconds;
     if (this.timeElement) {
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60);
+      const mins = Math.floor(flooredSeconds / 60);
+      const secs = flooredSeconds % 60;
       this.timeElement.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
     }
   }
@@ -573,8 +581,12 @@ export class GameHUD {
 
   /**
    * スコアを更新
+   * 値が変わっていない場合はDOM更新をスキップ（パフォーマンス最適化）
    */
   updateScore(score) {
+    // スコアが変わっていなければ早期リターン（不要なDOM更新を防止）
+    if (this.score === score) return;
+
     this.score = score;
     if (this.scoreElement) {
       this.scoreElement.textContent = score.toString();
@@ -647,8 +659,11 @@ export class GameHUD {
     this.container.classList.add('visible');
     this.isVisible = true;
 
-    // キーボードリスナーを追加
-    document.addEventListener('keydown', this._handleKeyDown);
+    // キーボードリスナーを追加（多重登録防止）
+    if (!this._keyListenerAttached) {
+      document.addEventListener('keydown', this._handleKeyDown);
+      this._keyListenerAttached = true;
+    }
   }
 
   /**
@@ -665,7 +680,10 @@ export class GameHUD {
     this.isPaused = false;
 
     // キーボードリスナーを削除
-    document.removeEventListener('keydown', this._handleKeyDown);
+    if (this._keyListenerAttached) {
+      document.removeEventListener('keydown', this._handleKeyDown);
+      this._keyListenerAttached = false;
+    }
     document.removeEventListener('keydown', this._handleFocusTrap);
   }
 

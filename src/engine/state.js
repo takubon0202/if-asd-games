@@ -17,7 +17,7 @@ export const GameState = {
 const VALID_TRANSITIONS = {
   [GameState.HOME]: [GameState.PLAYING, GameState.SETTINGS, GameState.HELP],
   [GameState.PLAYING]: [GameState.PAUSED, GameState.RESULT, GameState.HOME],
-  [GameState.PAUSED]: [GameState.PLAYING, GameState.HOME, GameState.SETTINGS],
+  [GameState.PAUSED]: [GameState.PLAYING, GameState.HOME, GameState.SETTINGS, GameState.RESULT],
   [GameState.RESULT]: [GameState.PLAYING, GameState.HOME],
   [GameState.SETTINGS]: [GameState.HOME, GameState.PAUSED],
   [GameState.HELP]: [GameState.HOME, GameState.PLAYING]

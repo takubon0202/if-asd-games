@@ -18,28 +18,8 @@ import {
 // UIモジュール
 import { uiManager, gameHUD } from './ui/index.js';
 
-// ゲームモジュール（遅延インポート用のパス）
-const GAME_MODULES = {
-  gameA: './games/gameA_rail.js',
-  gameB: './games/gameB_readline.js',
-  gameC: './games/gameC_predictSaccade.js'
-};
-
-// ゲーム情報
-const GAME_INFO = {
-  gameA: {
-    name: 'おいかけっこ',
-    class: 'GameA_Rail'
-  },
-  gameB: {
-    name: 'みつけよう',
-    class: 'GameB_Readline'
-  },
-  gameC: {
-    name: 'じゅんばん',
-    class: 'GameC_PredictSaccade'
-  }
-};
+// ゲームモジュール（src/games/index.jsから一元管理）
+import { GameList, getGameClass } from './games/index.js';
 
 /**
  * App - アプリケーション全体を統合するメインクラス
@@ -67,6 +47,7 @@ class App {
     this._handleResize = this._handleResize.bind(this);
     this._handleVisibilityChange = this._handleVisibilityChange.bind(this);
     this._handleGlobalKeyDown = this._handleGlobalKeyDown.bind(this);
+    this._handleBeforeUnload = this._handleBeforeUnload.bind(this);
   }
 
   /**
@@ -275,7 +256,7 @@ class App {
    */
   _setupStateListeners() {
     // 状態変更を購読
-    stateMachine.subscribe(this._handleStateChange);
+    this._stateUnsubscribe = stateMachine.subscribe(this._handleStateChange);
 
     console.log('State listeners initialized');
   }
@@ -294,11 +275,16 @@ class App {
     document.addEventListener('keydown', this._handleGlobalKeyDown);
 
     // ページ離脱前に記録を保存
-    window.addEventListener('beforeunload', () => {
-      this._saveOnExit();
-    });
+    window.addEventListener('beforeunload', this._handleBeforeUnload);
 
     console.log('Global events initialized');
+  }
+
+  /**
+   * ページ離脱時のハンドラ
+   */
+  _handleBeforeUnload() {
+    this._saveOnExit();
   }
 
   /**
@@ -362,13 +348,21 @@ class App {
    * @param {string} gameId - ゲームID
    */
   async _startGame(gameId) {
-    if (!gameId || !GAME_INFO[gameId]) {
+    if (this.isGameLoading) {
+      console.warn('Game is already loading, ignoring request');
+      return;
+    }
+
+    // GameListからゲーム情報を取得
+    const gameInfo = GameList.find(g => g.id === gameId);
+    if (!gameId || !gameInfo) {
       console.error('Invalid game ID:', gameId);
       stateMachine.goHome();
       return;
     }
 
     try {
+      this.isGameLoading = true;
       console.log(`Starting game: ${gameId}`);
 
       // 既存のゲームを終了
@@ -381,13 +375,18 @@ class App {
 
       if (!GameClass) {
         try {
-          const modulePath = GAME_MODULES[gameId];
-          const module = await import(modulePath);
-          GameClass = module[GAME_INFO[gameId].class];
+          // src/games/index.jsのgetGameClass関数を使用
+          GameClass = await getGameClass(gameId);
           this.loadedGameModules.set(gameId, GameClass);
+
+          // 競合状態防止: ロード中に状態が変わっていないか確認
+          if (!stateMachine.is(GameState.PLAYING)) {
+            console.log('Game loading cancelled: state changed during load');
+            return;
+          }
         } catch (importError) {
           console.error(`Failed to load game module: ${gameId}`, importError);
-          this._showError(`ゲームの読み込みに失敗しました: ${GAME_INFO[gameId].name}`);
+          this._showError(`ゲームの読み込みに失敗しました: ${gameInfo.name}`);
           stateMachine.goHome();
           return;
         }
@@ -427,6 +426,8 @@ class App {
       console.error('Failed to start game:', error);
       this._showError('ゲームの開始に失敗しました');
       stateMachine.goHome();
+    } finally {
+      this.isGameLoading = false;
     }
   }
 
@@ -481,8 +482,11 @@ class App {
         gameHUD.updateTime(Math.max(0, Math.ceil(remaining)));
       }
 
-      // ゲーム完了をチェック
-      if (this.currentGame.isFinished || this.currentGame.finished) {
+      // ゲーム完了をチェック（isGameFinished()メソッドを優先使用）
+      const isFinished = typeof this.currentGame.isGameFinished === 'function'
+        ? this.currentGame.isGameFinished()
+        : this.currentGame.isFinished;
+      if (isFinished) {
         this._onGameComplete(this.currentGame.getResult ? this.currentGame.getResult() : {});
       }
     }
@@ -598,13 +602,91 @@ class App {
   }
 
   /**
-   * エラーメッセージを表示
+   * エラーメッセージを表示（ASD/LD配慮：優しい表現）
    * @param {string} message - エラーメッセージ
    */
   _showError(message) {
     console.error(message);
-    // シンプルなアラートで表示（将来的にはUIコンポーネントで表示）
-    // alert(message);
+
+    // 既存のエラー通知を削除
+    const existingError = document.querySelector('.error-notification');
+    if (existingError) {
+      existingError.remove();
+    }
+
+    // エラー通知要素を作成
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-notification';
+    errorDiv.setAttribute('role', 'alert');
+    errorDiv.setAttribute('aria-live', 'assertive');
+    errorDiv.innerHTML = `
+      <span class="error-icon" aria-hidden="true">⚠️</span>
+      <span class="error-message">${message || 'エラーがおきました'}</span>
+      <button class="error-close" aria-label="とじる">×</button>
+    `;
+
+    // スタイルを適用
+    errorDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #FFF3E0;
+      color: #E65100;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-family: inherit;
+      z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 2px solid #FFCC80;
+      max-width: 90%;
+      animation: slideDown 0.3s ease-out;
+    `;
+
+    // アニメーションスタイルを追加
+    if (!document.getElementById('error-notification-styles')) {
+      const style = document.createElement('style');
+      style.id = 'error-notification-styles';
+      style.textContent = `
+        @keyframes slideDown {
+          from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+          to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        .error-notification .error-close {
+          background: none;
+          border: none;
+          font-size: 20px;
+          cursor: pointer;
+          color: #E65100;
+          padding: 4px 8px;
+          margin-left: 8px;
+        }
+        .error-notification .error-close:hover {
+          opacity: 0.7;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .error-notification { animation: none; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    document.body.appendChild(errorDiv);
+
+    // 閉じるボタンのイベント
+    const closeBtn = errorDiv.querySelector('.error-close');
+    closeBtn.addEventListener('click', () => errorDiv.remove());
+
+    // 5秒後に自動で閉じる
+    setTimeout(() => {
+      if (errorDiv.parentNode) {
+        errorDiv.remove();
+      }
+    }, 5000);
   }
 
   /**
@@ -612,7 +694,12 @@ class App {
    */
   destroy() {
     // イベントリスナーを解除
+    if (this._stateUnsubscribe) {
+      this._stateUnsubscribe();
+      this._stateUnsubscribe = null;
+    }
     window.removeEventListener('resize', this._handleResize);
+    window.removeEventListener('beforeunload', this._handleBeforeUnload);
     document.removeEventListener('visibilitychange', this._handleVisibilityChange);
     document.removeEventListener('keydown', this._handleGlobalKeyDown);
 
@@ -648,9 +735,9 @@ class App {
 }
 
 // アプリケーション起動
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const app = new App();
-  app.init();
+  await app.init(); // 非同期初期化を待機
 
   // デバッグ用にグローバルに公開
   if (typeof window !== 'undefined') {

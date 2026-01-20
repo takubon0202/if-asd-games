@@ -74,6 +74,11 @@ export class GameC_PredictSaccade {
     this.isFinished = false;
     this.currentRound = 0;
 
+    // main.jsのHUD連携用プロパティ
+    this.elapsedTime = 0;
+    this.score = 0;
+    this.timeLimit = 0; // ラウンド制のため時間制限なし（HUDでは非表示）
+
     // 位置管理
     this.currentPosition = null;
     this.nextPosition = null;
@@ -114,15 +119,19 @@ export class GameC_PredictSaccade {
     const usableWidth = this.logicalWidth - this.gridPadding * 2;
     const usableHeight = this.logicalHeight - this.gridPadding * 2;
 
-    const cellWidth = usableWidth / 2;
-    const cellHeight = usableHeight / 2;
+    // 3x3グリッドなので3で割る（修正: 2→3）
+    const GRID_COLS = 3;
+    const GRID_ROWS = 3;
+    const cellWidth = usableWidth / GRID_COLS;
+    const cellHeight = usableHeight / GRID_ROWS;
 
     this.gridPositions = [];
-    for (let row = 0; row < 3; row++) {
-      for (let col = 0; col < 3; col++) {
+    for (let row = 0; row < GRID_ROWS; row++) {
+      for (let col = 0; col < GRID_COLS; col++) {
         this.gridPositions.push({
-          x: this.gridPadding + col * cellWidth,
-          y: this.gridPadding + row * cellHeight,
+          // セルの中央に配置（+0.5を追加）
+          x: this.gridPadding + (col + 0.5) * cellWidth,
+          y: this.gridPadding + (row + 0.5) * cellHeight,
           col,
           row,
           name: this._getPositionName(col, row)
@@ -215,6 +224,10 @@ export class GameC_PredictSaccade {
     this.markerOpacity = 0;
     this.fadeProgress = 0;
 
+    // HUD連携用プロパティをリセット
+    this.elapsedTime = 0;
+    this.score = 0;
+
     // シーケンス生成
     this.positionSequence = this._generateSequence();
     this.positionIndex = 0;
@@ -226,9 +239,9 @@ export class GameC_PredictSaccade {
 
   /**
    * ゲーム開始
+   * 注意: init()はmain.jsから事前に呼び出されるため、ここでは呼ばない
    */
   start() {
-    this.init();
     this._startPreviewPhase();
   }
 
@@ -321,6 +334,11 @@ export class GameC_PredictSaccade {
     if (this.isPaused || this.phase === GamePhase.COMPLETE || this.phase === GamePhase.READY) {
       return;
     }
+
+    // HUD連携用の経過時間を更新
+    this.elapsedTime += dt;
+    // スコアは成功数を反映
+    this.score = this.results.filter(r => r.success).length;
 
     const dtMs = dt * 1000;
     this.phaseTimer += dtMs;
@@ -592,6 +610,14 @@ export class GameC_PredictSaccade {
         // 何もしない
       }
     }
+  }
+
+  /**
+   * ゲームが終了したかどうか
+   * @returns {boolean}
+   */
+  isGameFinished() {
+    return this.isFinished;
   }
 
   /**

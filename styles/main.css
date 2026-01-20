@@ -3,21 +3,22 @@
    ============================================ */
 
 :root {
-  /* ASD向け推奨カラーパレット */
-  --color-primary: #5C6BC0;
-  --color-primary-light: #7986CB;
-  --color-primary-dark: #3F51B5;
+  /* ASD向け推奨カラーパレット（Figmaテンプレートから抽出した色を統合） */
+  --color-primary: #4ECB71;
+  --color-primary-light: #6DD88D;
+  --color-primary-dark: #3DA85B;
+  --color-accent: #D99BFF;
+  --color-accent-dark: #B77DE0;
   --color-background: #FAFAFA;
   --color-surface: #FFFFFF;
   --color-text: #37474F;
   --color-text-secondary: #546E7A;
   --color-border: #CFD8DC;
-  --color-success: #81C784;
+  --color-success: #4ECB71;
   --color-warning: #FFB74D;
 
-  /* 後方互換性のためのエイリアス */
-  --color-accent: var(--color-primary);
-  --color-accent-hover: var(--color-primary-dark);
+  /* 後方互換性のためのエイリアス（--color-accentは上で定義済み） */
+  --color-accent-hover: var(--color-accent-dark);
 
   /* フォント */
   --font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', system-ui, sans-serif;

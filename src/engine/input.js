@@ -30,6 +30,9 @@ export class InputRouter {
     this.isPointerDown = false;
     this.pressedKeys = new Set();
 
+    // タッチ/クリック重複防止用タイムスタンプ
+    this.lastTouchTime = 0;
+
     // イベントハンドラをバインド
     this._onMouseMove = this._onMouseMove.bind(this);
     this._onMouseDown = this._onMouseDown.bind(this);
@@ -128,6 +131,11 @@ export class InputRouter {
   }
 
   _onClick(e) {
+    // タッチイベントから200ms以内のクリックは無視（重複防止）
+    // 100msでは環境によって短すぎるため200msに設定
+    if (Date.now() - this.lastTouchTime < 200) {
+      return;
+    }
     this.pointerPosition = this.getLogicalPosition(e);
     this._emit('action', this._createEvent('action', { source: 'mouse' }));
   }
@@ -152,6 +160,7 @@ export class InputRouter {
 
   _onTouchEnd(e) {
     this.isPointerDown = false;
+    this.lastTouchTime = Date.now(); // 重複防止用タイムスタンプ
     this._emit('pointerUp', this._createEvent('pointerUp', { source: 'touch' }));
     this._emit('action', this._createEvent('action', { source: 'touch' }));
   }
@@ -256,7 +265,12 @@ export class InputRouter {
    */
   destroy() {
     this._detachEvents();
+    // リスナー配列を明示的にクリア（メモリリーク防止）
+    for (const key in this.listeners) {
+      this.listeners[key].length = 0;
+    }
     this.listeners = {};
     this.pressedKeys.clear();
+    this.element = null;
   }
 }

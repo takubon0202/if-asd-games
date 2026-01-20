@@ -103,10 +103,17 @@ export class CanvasScaling {
   }
 
   /**
-   * リサイズイベントハンドラ
+   * リサイズイベントハンドラ（頻度制御付き）
    */
   _onResize() {
-    this.resize();
+    // リサイズイベントの頻度を制限（レイアウトスラッシング防止）
+    if (this._resizeTimeout) {
+      clearTimeout(this._resizeTimeout);
+    }
+    this._resizeTimeout = setTimeout(() => {
+      this.resize();
+      this._resizeTimeout = null;
+    }, 100);
   }
 
   /**
@@ -192,6 +199,10 @@ export class CanvasScaling {
    * リソースの解放
    */
   destroy() {
+    if (this._resizeTimeout) {
+      clearTimeout(this._resizeTimeout);
+      this._resizeTimeout = null;
+    }
     window.removeEventListener('resize', this._onResize);
   }
 }

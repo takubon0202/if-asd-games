@@ -73,8 +73,13 @@ export class SettingsScreen {
     this.isVisible = false;
     this.tempSettings = {};
 
+    // フォーカストラップ用の要素参照
+    this._firstFocusable = null;
+    this._lastFocusable = null;
+
     // キーボードハンドラをバインド
     this._handleKeyDown = this._handleKeyDown.bind(this);
+    this._handleFocusTrap = this._handleFocusTrap.bind(this);
   }
 
   /**
@@ -265,7 +270,7 @@ export class SettingsScreen {
         color: var(--color-text);
         display: flex;
         flex-direction: column;
-        font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+        font-family: var(--font-family, 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif);
         opacity: 0;
         visibility: hidden;
         transition: opacity 0.3s ease;
@@ -528,6 +533,48 @@ export class SettingsScreen {
   }
 
   /**
+   * フォーカストラップハンドラ（設定画面内でTabキーをループ）
+   */
+  _handleFocusTrap(event) {
+    if (!this.isVisible || event.key !== 'Tab') return;
+
+    // フォーカス可能な要素を更新
+    this._updateFocusableElements();
+
+    if (!this._firstFocusable || !this._lastFocusable) return;
+
+    if (event.shiftKey) {
+      // Shift+Tab: 最初の要素から最後の要素へ
+      if (document.activeElement === this._firstFocusable) {
+        event.preventDefault();
+        this._lastFocusable.focus();
+      }
+    } else {
+      // Tab: 最後の要素から最初の要素へ
+      if (document.activeElement === this._lastFocusable) {
+        event.preventDefault();
+        this._firstFocusable.focus();
+      }
+    }
+  }
+
+  /**
+   * フォーカス可能な要素を更新
+   */
+  _updateFocusableElements() {
+    if (!this.container) return;
+
+    const focusables = this.container.querySelectorAll(
+      'button:not([disabled]), [tabindex="0"]'
+    );
+
+    if (focusables.length > 0) {
+      this._firstFocusable = focusables[0];
+      this._lastFocusable = focusables[focusables.length - 1];
+    }
+  }
+
+  /**
    * 画面を表示
    */
   show() {
@@ -543,6 +590,10 @@ export class SettingsScreen {
 
     // キーボードリスナーを追加
     document.addEventListener('keydown', this._handleKeyDown);
+    document.addEventListener('keydown', this._handleFocusTrap);
+
+    // フォーカス可能な要素を初期化
+    this._updateFocusableElements();
 
     // 最初の設定項目にフォーカス
     setTimeout(() => {
@@ -564,6 +615,11 @@ export class SettingsScreen {
 
     // キーボードリスナーを削除
     document.removeEventListener('keydown', this._handleKeyDown);
+    document.removeEventListener('keydown', this._handleFocusTrap);
+
+    // フォーカストラップ用の参照をクリア
+    this._firstFocusable = null;
+    this._lastFocusable = null;
   }
 
   /**

@@ -1,0 +1,50 @@
+{
+  "claude": {
+    "plan": "Max",
+    "price": "$200/月",
+    "model": "claude-opus-4-5"
+  },
+  "codex": {
+    "enabled": true,
+    "method": "codex-cli",
+    "command": "codex",
+    "model": "gpt-5.2-codex",
+    "subscription": "ChatGPT Plus ($20/月)",
+    "autoInvoke": {
+      "onRepeatedError": 3,
+      "keywords": ["Codexで", "GPTで", "OpenAIで"]
+    }
+  },
+  "gemini": {
+    "enabled": true,
+    "method": "gemini-cli",
+    "command": "gemini",
+    "model": "gemini-3-pro-preview",
+    "subscription": "Gemini AI Pro",
+    "autoInvoke": {
+      "keywords": ["Geminiで", "Googleで"]
+    },
+    "skills": {
+      "enabled": true,
+      "directory": ".gemini/skills"
+    },
+    "availableModels": [
+      "gemini-3-pro-preview",
+      "gemini-3-flash-preview",
+      "gemini-2.5-pro",
+      "gemini-2.5-flash"
+    ]
+  },
+  "projectContext": {
+    "type": "web-game",
+    "target": "ASD/LD children",
+    "language": "JavaScript",
+    "framework": "Vanilla JS with ES6 Modules",
+    "style": "Canvas-based game",
+    "contextFiles": ["CODEX.md", "GEMINI.md"]
+  },
+  "autoSwitch": {
+    "onError": "suggest-alternatives",
+    "alternatives": ["claude", "codex", "gemini"]
+  }
+}

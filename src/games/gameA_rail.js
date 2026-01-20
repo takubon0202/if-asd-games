@@ -4,7 +4,7 @@
  * ASD&LD向け「目の動き」トレーニング
  */
 
-import { Easing, Draw, clamp, degToRad } from '../engine/index.js';
+import { Easing, Draw, clamp } from '../engine/index.js';
 import { theme } from '../engine/theme.js';
 
 // レールの種類
@@ -73,7 +73,8 @@ export class GameA_Rail {
 
     // 時間管理
     this.elapsedTime = 0;
-    this.timeLimit = TIME_LIMITS[settings.timeLimit] || TIME_LIMITS.medium;
+    // timeLimit検証：文字列キー、数値直接指定、無効値に対応
+    this.timeLimit = this._validateTimeLimit(settings.timeLimit);
 
     // レール設定
     this.railType = settings.railType || 'straight';
@@ -108,6 +109,24 @@ export class GameA_Rail {
     // 周回カウント
     this.lapCount = 0;
     this.maxLaps = this.timeLimit === Infinity ? Infinity : Math.ceil(this.timeLimit / this.loopTime);
+  }
+
+  /**
+   * timeLimit値を検証・正規化
+   * @param {string|number|undefined} value - 設定値
+   * @returns {number} 有効なtimeLimit値
+   */
+  _validateTimeLimit(value) {
+    // 文字列キーの場合
+    if (typeof value === 'string' && TIME_LIMITS[value] !== undefined) {
+      return TIME_LIMITS[value];
+    }
+    // 数値が直接渡された場合（正の数のみ許可）
+    if (typeof value === 'number' && value > 0) {
+      return value;
+    }
+    // 無効値の場合はデフォルト（medium）
+    return TIME_LIMITS.medium;
   }
 
   /**
@@ -160,8 +179,8 @@ export class GameA_Rail {
     const progressDelta = dt / this.loopTime;
     this.dotProgress += progressDelta;
 
-    // 周回処理
-    if (this.dotProgress >= 1) {
+    // 周回処理（whileで堅牢化：dtが大きい場合でも正確に処理）
+    while (this.dotProgress >= 1) {
       this.dotProgress -= 1;
       this.lapCount++;
 
@@ -231,15 +250,17 @@ export class GameA_Rail {
     }
 
     // main.jsからのイベント形式に対応
-    // action: 'action' または 'pointerDown' でアクション判定
-    const isActionEvent =
-      event.action === 'action' ||
+    // 二重カウント防止: pointerDown（タッチ/クリック開始）のみに反応
+    // action（タッチ終了/Spaceキー）は無視して重複を防ぐ
+    const isPointerDownEvent =
       event.action === 'pointerDown' ||
-      event.type === 'click' ||
-      event.type === 'touchstart' ||
-      (event.type === 'keydown' && event.key === ' ');
+      event.type === 'touchstart';
 
-    if (isActionEvent) {
+    // キーボード入力（Spaceキー）は別途処理
+    const isSpaceKey =
+      event.action === 'action' && event.key === ' ';
+
+    if (isPointerDownEvent || isSpaceKey) {
       this._checkMiddleZone();
     }
   }
@@ -313,6 +334,8 @@ export class GameA_Rail {
 
   /**
    * S字カーブレールパス生成
+   * シグモイド関数で真のS字カーブを生成
+   * 左上から始まり、中央を通過して右下へ向かう形状
    */
   _generateSCurvePath(width, height, padding) {
     const startX = padding;
@@ -321,11 +344,18 @@ export class GameA_Rail {
     const amplitude = height * 0.25;  // 上下の振れ幅
     const segments = 200;
 
+    // シグモイド関数でS字カーブを生成
+    const sigmoid = (x) => 1 / (1 + Math.exp(-x));
+
     for (let i = 0; i <= segments; i++) {
       const t = i / segments;
       const x = startX + (endX - startX) * t;
-      // S字カーブ：sin関数を使用
-      const y = centerY + Math.sin(t * Math.PI * 2) * amplitude;
+      // t=0で上端、t=0.5で中央、t=1で下端となるS字カーブ
+      // シグモイドの入力を-6〜+6の範囲に変換（十分な傾斜のため）
+      const scaledT = (t - 0.5) * 12;
+      const normalizedSigmoid = sigmoid(scaledT); // 0→1の範囲
+      // 上端から下端へ変化するように反転
+      const y = centerY + amplitude * (1 - 2 * normalizedSigmoid);
       this.railPath.push({ x, y });
     }
   }
@@ -374,9 +404,12 @@ export class GameA_Rail {
     const upperIndex = Math.min(lowerIndex + 1, this.railPath.length - 1);
     const fraction = index - lowerIndex;
 
-    // 2点間を補間
+    // 2点間を補間（nullチェック追加）
     const lower = this.railPath[lowerIndex];
     const upper = this.railPath[upperIndex];
+
+    // 安全性チェック: lower/upperがnullの場合は処理をスキップ
+    if (!lower || !upper) return;
 
     this.dotPosition = {
       x: lower.x + (upper.x - lower.x) * fraction,
@@ -456,8 +489,8 @@ export class GameA_Rail {
     ctx.fillStyle = colors.primary;
     ctx.fill();
 
-    // 白い縁取りを追加（線幅3px）
-    ctx.strokeStyle = '#ffffff';
+    // 白い縁取りを追加（線幅3px）- テーマの背景色を使用
+    ctx.strokeStyle = colors.background;
     ctx.lineWidth = 3;
     ctx.stroke();
   }

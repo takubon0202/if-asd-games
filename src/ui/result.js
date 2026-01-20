@@ -189,17 +189,19 @@ export class ResultScreen {
       scoreNumber.textContent = this.resultData.score;
     }
 
-    // 時間を更新
+    // 時間を更新（time または elapsedTime を使用）
     const timeRow = this.container.querySelector('#stat-time');
-    if (timeRow && this.resultData.time !== undefined) {
-      const seconds = Math.floor(this.resultData.time);
-      timeRow.textContent = `\u23F1\uFE0F じかん: ${seconds} びょう`;
+    const timeValue = this.resultData.time ?? this.resultData.elapsedTime;
+    if (timeRow && timeValue !== undefined) {
+      const seconds = Math.floor(timeValue);
+      timeRow.textContent = `じかん: ${seconds} びょう`;
     }
 
-    // 正解数を更新
+    // 正解数を更新（correct または correctCount または successCount を使用）
     const correctRow = this.container.querySelector('#stat-correct');
-    if (correctRow && this.resultData.correct !== undefined) {
-      correctRow.textContent = `\u2705 せいかい: ${this.resultData.correct} かい`;
+    const correctValue = this.resultData.correct ?? this.resultData.correctCount ?? this.resultData.successCount;
+    if (correctRow && correctValue !== undefined) {
+      correctRow.textContent = `せいかい: ${correctValue} かい`;
     }
 
     // 励ましメッセージを更新
@@ -211,22 +213,23 @@ export class ResultScreen {
 
   /**
    * 励ましのメッセージを取得
+   * ASD/LD向け: 絵文字を廃止しシンプルなテキストに
    */
   _getEncouragementMessage() {
     if (!this.resultData) {
-      return 'つぎもがんばろう! \u2B50';
+      return 'つぎも がんばろう!';
     }
 
     const score = this.resultData.score || 0;
     const accuracy = this.resultData.accuracy || 0;
 
-    // スコアと正解率に基づいたメッセージ
+    // スコアと正解率に基づいたメッセージ（絵文字なし）
     if (score >= 80 || accuracy >= 90) {
-      return 'すごい! \u2B50\u2B50\u2B50';
+      return 'すごい! とても よくできました!';
     } else if (score >= 50 || accuracy >= 70) {
-      return 'いいね! \u2B50\u2B50';
+      return 'いいね! よく できました!';
     } else {
-      return 'つぎもがんばろう! \u2B50';
+      return 'つぎも がんばろう!';
     }
   }
 
@@ -266,7 +269,7 @@ export class ResultScreen {
         align-items: center;
         padding: 32px;
         box-sizing: border-box;
-        font-family: 'Hiragino Kaku Gothic ProN', '\u30E1\u30A4\u30EA\u30AA', sans-serif;
+        font-family: var(--font-family, 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif);
         opacity: 0;
         visibility: hidden;
         transition: opacity 0.3s ease;

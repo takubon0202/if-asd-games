@@ -216,7 +216,8 @@ export class GameB_Readline {
                     settings.difficulty === 'normal' ? 4 : 5;
     this.colCount = settings.difficulty === 'easy' ? 3 :
                     settings.difficulty === 'normal' ? 4 : 5;
-    this.showGuide = settings.showGuide !== false;
+    // settings.guide を使用（他のゲームと一貫性のため）
+    this.showGuide = settings.guide !== false;
     this.timeLimit = settings.timeLimit || 60;
 
     // ゲーム状態
@@ -228,6 +229,7 @@ export class GameB_Readline {
     this.mistakeCount = 0;
     this.elapsedTime = 0;
     this.isRunning = false;
+    this.isPaused = false;
     this.isCompleted = false;
     this.isFinished = false;
 
@@ -314,7 +316,7 @@ export class GameB_Readline {
    * @param {number} dt - 経過時間（秒）
    */
   update(dt) {
-    if (!this.isRunning || this.isCompleted) return;
+    if (!this.isRunning || this.isPaused || this.isCompleted) return;
 
     // 時間更新
     this.elapsedTime += dt;
@@ -663,16 +665,14 @@ export class GameB_Readline {
    * 一時停止
    */
   pause() {
-    this.isRunning = false;
+    this.isPaused = true;
   }
 
   /**
    * 再開
    */
   resume() {
-    if (!this.isCompleted) {
-      this.isRunning = true;
-    }
+    this.isPaused = false;
   }
 
   /**
@@ -680,6 +680,14 @@ export class GameB_Readline {
    */
   destroy() {
     this.targets = [];
+  }
+
+  /**
+   * ゲームが終了したかどうか
+   * @returns {boolean}
+   */
+  isGameFinished() {
+    return this.isFinished;
   }
 
   /**
